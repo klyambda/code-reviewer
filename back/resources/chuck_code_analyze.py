@@ -11,10 +11,17 @@ from services.project import ProjectManager
 
 class ProjectChuckCodeAnalyze(Resource):
     def get(self, file_id):
-        data_file = col_files.find_one({"_id": ObjectId(file_id)})
+        data_file = col_files.find_one({"_id": file_id})
         if data_file:
             # TODO тут логика получить информацию
-            return {"result": "file_id"}
+
+            # TODO для теста удалить
+            from random import randint
+            if randint(1, 10) == 2:
+                # готово, вернуть результат (ключ не меняй)
+                return {"result": "тут результ"}
+            else:
+                return {"result": "Ваш код анализируется, ожидайте"}, 200
         else:
             return {"message": "project not found"}, 404
 
