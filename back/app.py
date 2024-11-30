@@ -6,6 +6,7 @@ from resources.answer import FileAnswer, ProjectAnswer
 from resources.project import Project
 from resources.file_analyze import FileAnalyze
 from resources.project_analyze import ProjectAnalyze
+from resources.project_additional_settings_promt import ProjectAdditionalSettingsPromt
 from src.utils import CustomJSONEncoder
 
 
