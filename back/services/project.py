@@ -81,23 +81,22 @@ class ProjectManager:
                     )
         return structure
 
-    def format_tree(self, tree, indent=""):
+    def format_tree(self, structure, prefix=""):
         """
-        Форматирует дерево каталогов из словаря в строку.
+        Преобразует JSON-структуру файловой системы в строку в виде дерева.
         """
-        result = []
-        entries = list(tree.keys())
+        tree_str = ""
+        for index, item in enumerate(structure):
+            is_last = index == len(structure) - 1  # Проверяем, последний ли это элемент
+            branch = "└── " if is_last else "├── "
+            next_prefix = "    " if is_last else "│   "
 
-        for i, entry in enumerate(entries):
-            is_last = i == len(entries) - 1
-            connector = "└── " if is_last else "├── "
+            if item["type"] == "file":
+                # Добавляем файл
+                tree_str += f"{prefix}{branch}{item['name']}\n"
+            elif item["type"] == "folder":
+                # Добавляем папку и рекурсивно добавляем ее содержимое
+                tree_str += f"{prefix}{branch}{item['name']}\n"
+                tree_str += self.format_tree(item["children"], prefix + next_prefix)
 
-            # Добавляем текущий элемент
-            result.append(f"{indent}{connector}{entry}")
-
-            # Если это папка с содержимым, рекурсивно добавляем её содержимое
-            if isinstance(tree[entry], dict):
-                deeper_indent = indent + ("    " if is_last else "│   ")
-                result.append(self.format_tree(tree[entry], deeper_indent))
-
-        return "\n".join(result)
+        return tree_str
