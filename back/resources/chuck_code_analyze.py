@@ -13,15 +13,10 @@ class ProjectChuckCodeAnalyze(Resource):
     def get(self, file_id):
         data_file = col_files.find_one({"_id": file_id})
         if data_file:
-            # TODO тут логика получить информацию
-
-            # TODO для теста удалить
-            from random import randint
-            if randint(1, 10) == 2:
-                # готово, вернуть результат (ключ не меняй)
-                return {"answer": "тут результ"}
+            if "answer" in data_file:
+                return {"answer": data_file["answer"]}
             else:
-                return {"answer": "Ваш код анализируется, ожидайте"}, 200
+                return {"message": "Ваш код анализируется, ожидайте"}, 200
         else:
             return {"message": "project not found"}, 404
 
