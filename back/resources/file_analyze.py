@@ -1,3 +1,4 @@
+from loguru import logger
 from flask import request
 from bson import ObjectId
 from bson.errors import InvalidId
@@ -22,6 +23,7 @@ class FileAnalyze(Resource):
                 return {"message": "Only .py files are allowed"}, 400
             try:
                 file_content = file.read().decode("utf-8")
+                logger.debug(f"Start analyzing file {file.filename}")
                 answer = evraz_manager.generate_file_answer(file_content)
                 return {"answer": answer}, 200
             except Exception as e:
