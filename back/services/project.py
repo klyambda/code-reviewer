@@ -34,7 +34,7 @@ class ProjectManager:
             with tempfile.TemporaryDirectory() as temp_dir:
                 with zipfile.ZipFile(archive_file, "r") as zip_ref:
                     zip_ref.extractall(temp_dir)
-                    self.structure = self.build_structure(temp_dir)
+                    self.structure = self.build_structure(temp_dir, root_dir=temp_dir)
         except zipfile.BadZipFile:
             raise ValueError("The provided file is not a valid ZIP archive.")
         except Exception as e:
@@ -42,7 +42,7 @@ class ProjectManager:
         else:
             col_projects.update_one({"_id": self.project_id}, {"$set": {"structure": self.structure}})
 
-    def build_structure(self, path):
+    def build_structure(self, path, root_dir=""):
         structure = []
         for item in sorted(os.listdir(path)):
             item_path = os.path.join(path, item)
@@ -59,7 +59,7 @@ class ProjectManager:
                     "id": uuid4().hex,
                     "name": item,
                     "type": "folder",
-                    "children": self.build_structure(item_path)
+                    "children": self.build_structure(item_path, root_dir)
                 })
             else:
                 file_id = uuid4().hex
@@ -89,8 +89,8 @@ class ProjectManager:
                     if item.endswith(".py"):
                         definition = self.code_manager.extract_functions_and_classes(content)
                         if item_path not in self.files_by_folders:
-                            self.files_by_folders[item_path] = []
-                        self.files_by_folders[item_path].append(f"#{item}\n{definition}")
+                            self.files_by_folders[item_path.lstrip(root_dir)] = []
+                        self.files_by_folders[item_path.lstrip(root_dir)].append(f"#{item}\n{definition}")
 
         return structure
 
