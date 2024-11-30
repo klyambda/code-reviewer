@@ -18,7 +18,7 @@ class ProjectAnswer(Resource):
         if "answer" not in project:
             return {"message": f"No answer yet for project with id {project_id}"}, 400
 
-        return project["answer"], 200
+        return {"answer": project["answer"]}, 200
 
 
 class FileAnswer(Resource):
@@ -34,4 +34,4 @@ class FileAnswer(Resource):
         if "answer" not in file:
             return {"message": f"No answer yet for file with id {file_id}"}, 400
 
-        return file["answer"], 200
+        return {"answer": file["answer"]}, 200
