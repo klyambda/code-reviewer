@@ -28,7 +28,7 @@ class FileAnswer(Resource):
         except InvalidId:
             return {"message": f"No file with id {file_id}"}, 400
 
-        file = col_projects.find_one({"_id": file_id}, {"answer": 1})
+        file = col_files.find_one({"_id": file_id}, {"answer": 1})
         if file is None:
             return {"message": f"No file with id {file_id}"}, 400
         if "answer" not in file:
