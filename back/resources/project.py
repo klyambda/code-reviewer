@@ -36,10 +36,9 @@ class Project(Resource):
         project_manager = ProjectManager()
         project_id = project_manager.insert_project(file.filename.rstrip(".zip"))
         try:
-            result = project_manager.extract_archive_and_return_result(file, project_id)
-            result["project_id"] = project_id
+            project_manager.extract_archive_and_return_result(file, project_id)
         except Exception as e:
             logger.exception(e)
             return {"message": "Error with archive"}, 400
 
-        return result, 200
+        return project_id, 200

@@ -26,19 +26,16 @@ class ProjectManager:
         return project_id
 
     def extract_archive_and_return_result(self, archive_file, project_id):
-        result = {
-            "structure": {},
-            "files": [],
-        }
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
-                result["structure"], result["files"] = self._get_tree_and_files(archive_file, temp_dir, project_id)
+                structure, files = self._get_tree_and_files(archive_file, temp_dir, project_id)
         except zipfile.BadZipFile:
             raise ValueError("The provided file is not a valid ZIP archive.")
         except Exception as e:
             raise RuntimeError(f"An error occurred while processing the archive: {e}")
-
-        return result
+        else:
+            col_files.insert_many(files)
+            col_projects.update_one({"_id": project_id}, {"$set": {"structure": structure}})
 
     def _get_tree_and_files(self, archive_file, temp_dir, project_id):
         tree = {}
@@ -99,9 +96,6 @@ class ProjectManager:
                             # Это директория
                             current_level[part] = {}
                     current_level = current_level[part]
-
-        col_files.insert_many(files)
-        col_projects.update_one({"_id": project_id}, {"$set": {"structure": tree}})
 
         return tree, files
 
