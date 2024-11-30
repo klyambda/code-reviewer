@@ -18,17 +18,7 @@ class Project(Resource):
 
             return {"structure": project.get("structure", {}), "files": files}, 200
 
-        projects = []
-        for project in col_projects.find({}, {"structure": 0}):
-            projects.append(
-                {
-                    "_id": project["_id"],
-                    "name": project["name"],
-                    "created_at": project["created_at"],
-                    "structure": project["structure"],
-                }
-            )
-        return {"projects": projects}, 200
+        return {"projects": list(col_projects.find({}, {"structure": 0}))}, 200
 
     def post(self, project_id=None):
         """
