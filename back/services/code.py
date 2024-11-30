@@ -108,4 +108,4 @@ class CodeManager:
         for node in tree.body:
             extract(node)
 
-        return functions_and_methods
+        return "\n".join(functions_and_methods)
