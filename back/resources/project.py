@@ -31,10 +31,10 @@ class Project(Resource):
         """
         Загрузка проекта в формате .zip с сохранением структуры и файлов .py
         """
-        if "archive" not in request.files:
-            return {"message": "No archive in the request"}, 400
+        if "file" not in request.files:
+            return {"message": "No archive file in the request"}, 400
 
-        file = request.files["archive"]
+        file = request.files["file"]
         if not file.filename.lower().endswith(config.ALLOWED_ARCHIVES_EXT):
             return {"message": "Invalid archive file format, only .zip"}, 400
 
