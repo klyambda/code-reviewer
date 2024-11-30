@@ -23,7 +23,7 @@ class ProjectManager:
         project_id = col_projects.insert_one(
             {"name": archive_filename, "created_at": datetime.now()}
         ).inserted_id
-        return str(project_id)
+        return project_id
 
     def extract_archive_and_return_result(self, archive_file, project_id):
         result = {
