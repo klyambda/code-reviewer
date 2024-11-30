@@ -17,7 +17,7 @@ class ProjectAnalyze(Resource):
         try:
             project_id = ObjectId(project_id)
         except InvalidId:
-            return {"message": f"No project with id {project_id}"}, 400
+            return {"message": f"No project with id{project_id}"}, 400
 
         project = col_projects.find_one({"_id": project_id})
         if project is None:
