@@ -1,3 +1,4 @@
+from bson import ObjectId
 from loguru import logger
 from flask import request
 from flask_restful import Resource
@@ -10,6 +11,7 @@ from src.mongo import col_projects, col_files
 class Project(Resource):
     def get(self, project_id=None):
         if project_id:
+            project_id = ObjectId(project_id)
             project = col_projects.find_one({"_id": project_id})
             if project is None:
                 return {"message": f"No project with id {project_id}"}, 400
