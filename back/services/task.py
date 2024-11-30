@@ -19,8 +19,11 @@ class TaskManager:
             data["file_id"] = entity_id
         answer_id = col_answers.insert_one(data).inserted_id
 
-        self.scheduler.add_job(self.execute_task, DateTrigger(datetime.now() + timedelta(seconds=1)), args=[answer_id, func, *args])
-
+        self.scheduler.add_job(
+            self.execute_task,
+            DateTrigger(datetime.now() + timedelta(seconds=1)),
+            args=[answer_id, func, *args]
+        )
         return answer_id
 
     def execute_task(self, answer_id, func, *args):
