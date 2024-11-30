@@ -8,14 +8,27 @@ from src.mongo import col_projects, col_files
 
 
 class Project(Resource):
-    def get(self, project_id):
-        project = col_projects.find_one({"_id": project_id})
-        if project is None:
-            return {"message": f"No project with id {project_id}"}, 400
+    def get(self, project_id=None):
+        if project_id:
+            project = col_projects.find_one({"_id": project_id})
+            if project is None:
+                return {"message": f"No project with id {project_id}"}, 400
 
-        files = col_files.find({"project_id": project_id}, {"project_id": 0, "created_at": 0})
+            files = col_files.find({"project_id": project_id}, {"project_id": 0, "created_at": 0})
 
-        return {"structure": project.get("structure", {}), "files": files}, 200
+            return {"structure": project.get("structure", {}), "files": files}, 200
+
+        projects = []
+        for project in col_projects.find({}, {"name": 1, "created_at": 1, "structure": 1}):
+            projects.append(
+                {
+                    "_id": project["_id"],
+                    "name": project["name"],
+                    "created_at": project["created_at"],
+                    "structure": project["structure"],
+                }
+            )
+        return {"projects": projects}, 200
 
     def post(self, project_id=None):
         """
