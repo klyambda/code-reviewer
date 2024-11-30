@@ -1,6 +1,7 @@
 from time import time
 from datetime import datetime
 
+from loguru import logger
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from src.mongo import col_answers
@@ -23,7 +24,9 @@ class TaskManager:
         return answer_id
 
     def execute_task(self, answer_id, func, *args):
+        logger.debug(f"Starting task {answer_id}")
         result = func(*args)
+        logger.debug(f"Task {answer_id} finished")
         col_answers.update_one(
             {"_id": answer_id},
             {"$set": {"answer": result, "status": "COMPLETED"}}
