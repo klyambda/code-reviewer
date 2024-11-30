@@ -33,7 +33,7 @@ class CodeManager:
                 bases = []
                 for base in node.bases:
                     if isinstance(base, ast.Attribute):
-                        bases.append(base.value)
+                        bases.append(base.value.id)
                     elif isinstance(base, ast.Name):
                         bases.append(base.id)
                 result += f"({', '.join(bases)}):"
