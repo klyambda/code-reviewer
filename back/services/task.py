@@ -10,6 +10,7 @@ from src.mongo import col_answers
 class TaskManager:
     def __init__(self):
         self.scheduler = BackgroundScheduler()
+        self.scheduler.start()
 
     def create_task_and_return_answer_id(self, func, entity_type, entity_id, *args):
         data = {"started_at": datetime.now(), "status": "PENDING"}
