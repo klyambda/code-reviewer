@@ -23,7 +23,7 @@ class ProjectChuckCodeAnalyze(Resource):
         parser.add_argument("code", type=str)
         data = parser.parse_args()
         print(data["code"])
-        data_file = col_files.find_one({"_id": ObjectId(file_id)})
+        data_file = col_files.find_one({"_id": file_id})
         if data_file:
             # TODO тут логика создать задачу на промт для этого файла 
 
