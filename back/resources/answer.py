@@ -9,7 +9,8 @@ class ProjectAnswer(Resource):
     def get(self, project_id):
         try:
             project_id = ObjectId(project_id)
-        except InvalidId:
+        except InvalidId as e:
+            print(e)
             return {"message": f"No project with id {project_id}"}, 400
 
         project = col_projects.find_one({"_id": project_id}, {"answer": 1})
