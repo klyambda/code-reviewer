@@ -28,3 +28,6 @@ class TaskManager:
             {"_id": answer_id},
             {"$set": {"answer": result, "status": "COMPLETED"}}
         )
+
+
+task_manager = TaskManager()

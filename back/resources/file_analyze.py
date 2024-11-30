@@ -1,10 +1,10 @@
 from flask import request
-from loguru import logger
 from bson import ObjectId
 from bson.errors import InvalidId
 from flask_restful import Resource
 
 from src.mongo import col_files
+from services.task import task_manager
 from services.evraz import EvrazManager
 
 
@@ -38,9 +38,10 @@ class FileAnalyze(Resource):
             return {"message": "No file or file_id in the request"}, 400
 
         evraz_manager = EvrazManager()
-        try:
-            answer = evraz_manager.generate_answer(file_content)
-            return {"answer": answer}, 200
-        except Exception as e:
-            logger.exception(f"Ошибка {e} при запросе {file_content}")
-            return {"message": "EVRAZ_API_ERROR"}, 500
+        answer_id = task_manager.create_task_and_return_answer_id(
+            evraz_manager.generate_file_answer,
+            "file",
+            file_id,
+            file_content,
+        )
+        return {"answer_id": answer_id}, 200
