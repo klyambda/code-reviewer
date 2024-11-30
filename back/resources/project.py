@@ -19,7 +19,7 @@ class Project(Resource):
             return {"structure": project.get("structure", {}), "files": files}, 200
 
         projects = []
-        for project in col_projects.find({}, {"name": 1, "created_at": 1, "structure": 1}):
+        for project in col_projects.find({}, {"structure": 0}):
             projects.append(
                 {
                     "_id": project["_id"],
