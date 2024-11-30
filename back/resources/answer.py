@@ -13,6 +13,7 @@ class ProjectAnswer(Resource):
             return {"message": f"No project with id {project_id}"}, 400
 
         project = col_projects.find_one({"_id": project_id}, {"answer": 1})
+        print(project)
         if project is None:
             return {"message": f"No project with id {project_id}"}, 400
         if "answer" not in project:
