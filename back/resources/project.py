@@ -34,7 +34,7 @@ class Project(Resource):
             return {"message": "Invalid archive file format, only .zip"}, 400
 
         project_manager = ProjectManager()
-        project_id = project_manager.insert_project(file.filename)
+        project_id = project_manager.insert_project(file.filename.rstrip(".zip"))
         try:
             result = project_manager.extract_archive_and_return_result(file, project_id)
             result["project_id"] = project_id
