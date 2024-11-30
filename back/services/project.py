@@ -1,5 +1,7 @@
+import os
 import zipfile
 import tempfile
+from uuid import uuid4
 from datetime import datetime
 
 from loguru import logger
@@ -28,76 +30,56 @@ class ProjectManager:
     def extract_archive_and_save(self, archive_file, project_id):
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
-                structure, files = self._get_tree_and_files(archive_file, temp_dir, project_id)
+                with zipfile.ZipFile(archive_file, "r") as zip_ref:
+                    zip_ref.extractall(temp_dir)
+                    structure = self.build_structure(temp_dir, project_id)
         except zipfile.BadZipFile:
             raise ValueError("The provided file is not a valid ZIP archive.")
         except Exception as e:
             raise RuntimeError(f"An error occurred while processing the archive: {e}")
         else:
-            col_files.insert_many(files)
             col_projects.update_one({"_id": project_id}, {"$set": {"structure": structure}})
 
-    def _get_tree_and_files(self, archive_file, temp_dir, project_id):
-        tree = {}
-        files = []
+    def build_structure(self, path, project_id):
+        structure = []
+        for item in sorted(os.listdir(path)):
+            item_path = os.path.join(path, item)
 
-        with zipfile.ZipFile(archive_file, "r") as zip_ref:
-            zip_ref.extractall(temp_dir)
-            for file in zip_ref.namelist():
-                parts = file.split("/")
-                current_level = tree
+            # Пропускаем системные папки
+            if any(
+                item.startswith(ignored)
+                for ignored in self.IGNORED_SYSTEM_DIRECTORIES
+            ):
+                continue
 
-                skip = False
-                for part in parts:
-                    # Проверка на игнорируемую папку
-                    if part in self.IGNORED_SYSTEM_DIRECTORIES:
-                        skip = True
-                        break
-
-                if skip:
-                    continue
-
-                for part in parts:
-                    # Пропустить пустые части (например, из-за `/` в конце)
-                    if part == "":
-                        continue
-                    if part not in current_level:
-                        # Это файл
-                        if part == parts[-1] and not file.endswith("/"):
-                            current_level[part] = None
-
-                            # сохраняем только .py файлы
-                            if not file.endswith(".py"):
-                                continue
-
-                            # проверка, что путь не попадает в игнорируемую папку
-                            if any(
-                                file.startswith(ignored)
-                                for ignored in self.IGNORED_SYSTEM_DIRECTORIES
-                            ):
-                                continue
-
-                            try:
-                                files.append(
-                                    {
-                                        "path": file,
-                                        "filename": part,
-                                        "content": zip_ref.read(file).decode("utf-8"),
-                                        "project_id": project_id,
-                                        "created_at": datetime.now(),
-                                    }
-                                )
-                            except UnicodeDecodeError:
-                                # Пропускаем файлы, которые не удается декодировать как текст
-                                logger.exception(
-                                    f"Не удалось декодировать {file} как текст."
-                                )
-                        else:
-                            # Это директория
-                            current_level[part] = {}
-                    current_level = current_level[part]
-
-        return tree, files
+            if os.path.isdir(item_path):
+                structure.append({
+                    "id": uuid4().hex,
+                    "name": item,
+                    "type": "folder",
+                    "children": self.build_structure(item_path)
+                })
+            else:
+                file_id = uuid4().hex
+                structure.append(
+                    {
+                        "id": file_id,
+                        "name": item,
+                        "type": "file",
+                    }
+                )
+                with open(item_path, "r", encoding="utf-8", errors="ignore") as file:
+                    content = file.read()
+                col_files.insert_one(
+                    {
+                        "_id": file_id,
+                        "name": item,
+                        "content": content,
+                        "project_id": project_id,
+                        "created_at": datetime.now(),
+                    }
+                )
+        return structure
 
     def format_tree(self, tree, indent=""):
         """
