@@ -34,13 +34,17 @@ class FileAnalyze(Resource):
             file = col_files.find_one({"_id": file_id})
             if file is None:
                 return {"message": f"No file with id {file_id}"}, 400
+            if file.get("analyze"):
+                # чтобы не делать, такой же анализ опять
+                return {"message": "ok"}, 200
+            col_files.update_one({"_id": file_id}, {"$set": {"analyze": True}})
             file_content = file["content"]
 
         else:
             return {"message": "No file or file_id in the request"}, 400
 
         task_manager.create_task(
-            "files",
+            "file",
             file_id,
             evraz_manager.generate_file_answer,
             file_content,
