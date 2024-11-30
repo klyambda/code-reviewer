@@ -83,8 +83,8 @@ class ProjectManager:
                             try:
                                 files.append(
                                     {
-                                        "path": part,
-                                        "filename": file,
+                                        "path": file,
+                                        "filename": part,
                                         "content": zip_ref.read(file).decode("utf-8"),
                                         "project_id": project_id,
                                         "created_at": datetime.now(),
