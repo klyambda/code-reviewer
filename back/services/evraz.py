@@ -32,9 +32,13 @@ class EvrazManager:
 
     def generate_answer(self, content, system_prompt):
         payload = self.get_payload(content, system_prompt)
-        response = requests.post(self.evraz_url, json=payload, headers=self.headers)
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
+        try:
+            response = requests.post(self.evraz_url, json=payload, headers=self.headers)
+            data = response.json()
+            return data["choices"][0]["message"]["content"]
+        except Exception as e:
+            logger.exception(f"Ошибка {e} при запросе {content}")
+            return "EVRAZ_API_ERROR"
 
     def generate_structure_answer(self, content):
         return self.generate_answer(content, project_prompt)
