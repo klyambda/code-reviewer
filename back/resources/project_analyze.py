@@ -1,3 +1,4 @@
+from loguru import logger
 from bson import ObjectId
 from bson.errors import InvalidId
 from flask_restful import Resource
@@ -23,6 +24,7 @@ class ProjectAnalyze(Resource):
 
         project_manager = ProjectManager()
         structure_tree = project_manager.format_tree(project.get("structure", {}))
+        logger.debug(structure_tree)
 
         evraz_manager = EvrazManager()
         structure_answer = evraz_manager.generate_structure_answer(structure_tree)
