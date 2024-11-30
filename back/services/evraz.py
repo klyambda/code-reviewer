@@ -39,6 +39,9 @@ class EvrazManager:
     def generate_structure_answer(self, content):
         return self.generate_answer(content, project_prompt)
 
+    def generate_file_answer(self, content):
+        return self.generate_answer(content, file_prompt)
+
     def generate_files_answers(self, files_content):
         return asyncio.run(self.fetch_all(files_content))
 
