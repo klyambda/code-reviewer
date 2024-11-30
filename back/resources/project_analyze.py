@@ -34,4 +34,4 @@ class ProjectAnalyze(Resource):
             evraz_manager.generate_structure_answer,
             structure_tree,
         )
-        return {"message": "ok"}, 200
+        return {"message": "project is sent to Analyzer"}, 200
