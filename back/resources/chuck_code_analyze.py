@@ -29,14 +29,15 @@ class ProjectChuckCodeAnalyze(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("code", type=str)
         data = parser.parse_args()
-        print(data["code"])
         data_file = col_files.find_one({"_id": file_id})
         if data_file:
-            # TODO тут логика создать задачу на промт для этого файла 
-
             project = col_projects.find_one({"_id": data_file["project_id"]})
-            print(project.get("additional_settings_promt", ""))
-            # ВАЖНО используя project.get("additional_settings_promt", "") (это доп промт от юзаре)
+            task_manager.create_task(
+                "files",
+                file_id,
+                evraz_manager.generate_file_answer,
+                data["code"] + f'\n\n {project.get("additional_settings_promt", "")}',
+            )
             return {"message": "ok"}, 200
         else:
             return {"message": "file not found"}, 404
