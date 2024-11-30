@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 
+from resources.answer import Answer
 from resources.project import Project
 from resources.file_analyze import FileAnalyze
 from resources.project_analyze import ProjectAnalyze
@@ -13,6 +14,7 @@ app.config["RESTFUL_JSON"] = {"cls": CustomJSONEncoder}
 CORS(app)
 
 api = Api(app)
+api.add_resource(Answer, "/answers/<answer_id>")
 api.add_resource(Project, "/projects", "/projects/<project_id>")
 api.add_resource(ProjectAnalyze, "/analyze/projects/<project_id>")
 api.add_resource(FileAnalyze, "/analyze/files", "/analyze/files/<file_id>")
