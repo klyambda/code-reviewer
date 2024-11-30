@@ -46,4 +46,4 @@ class Project(Resource):
             logger.exception(e)
             return {"message": "Error with archive"}, 400
 
-        return project_id, 200
+        return {"project_id": project_id}, 200

@@ -1,3 +1,5 @@
+from bson import ObjectId
+from bson.errors import InvalidId
 from flask_restful import Resource
 
 from src.mongo import col_projects
@@ -10,6 +12,11 @@ class ProjectAnalyze(Resource):
         """
         Анализ структуры загруженного проекта
         """
+        try:
+            project_id = ObjectId(project_id)
+        except InvalidId:
+            return {"message": f"No project with id {project_id}"}, 400
+
         project = col_projects.find_one({"_id": project_id})
         if project is None:
             return {"message": f"No project with id {project_id}"}, 400

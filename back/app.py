@@ -14,8 +14,8 @@ CORS(app)
 
 api = Api(app)
 api.add_resource(Project, "/projects", "/projects/<project_id>")
-api.add_resource(ProjectAnalyze, "/analyze/projects", "/analyze/projects/<project_id>")
-api.add_resource(FileAnalyze, "/analyze/files",)
+api.add_resource(ProjectAnalyze, "/analyze/projects/<project_id>")
+api.add_resource(FileAnalyze, "/analyze/files", "/analyze/files/<file_id>")
 
 
 if __name__ == "__main__":
