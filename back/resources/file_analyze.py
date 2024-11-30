@@ -1,22 +1,22 @@
 from flask import request
 from loguru import logger
-from flask_restful import Resource, reqparse
+from bson import ObjectId
+from bson.errors import InvalidId
+from flask_restful import Resource
 
+from src.mongo import col_files
 from services.evraz import EvrazManager
 
 
 class FileAnalyze(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument("code", type=str)
-
-    def post(self):
+    def post(self, file_id=None):
         """
         Анализ загруженного файла в формате .py или текста
         """
         file_content = None
 
-        if "code" in request.files:
-            file = request.files["code"]
+        if "file" in request.files:
+            file = request.files["file"]
             if not file.filename.lower().endswith(".py"):
                 return {"message": "Only .py files are allowed"}, 400
             try:
@@ -24,11 +24,18 @@ class FileAnalyze(Resource):
             except Exception as e:
                 return {"message": f"Error reading file: {str(e)}"}, 500
 
-        if not file_content:
-            data = FileAnalyze.parser.parse_args()
-            if data.get("code") is None:
-                return {"message": "No file or code provided"}, 400
-            file_content = data["code"]
+        elif file_id:
+            try:
+                file_id = ObjectId(file_id)
+            except InvalidId:
+                return {"message": f"No file with id {file_id}"}, 400
+            file = col_files.find_one({"_id": file_id})
+            if file is None:
+                return {"message": f"No file with id {file_id}"}, 400
+            file_content = file["content"]
+
+        else:
+            return {"message": "No file or file_id in the request"}, 400
 
         evraz_manager = EvrazManager()
         try:
@@ -36,4 +43,4 @@ class FileAnalyze(Resource):
             return {"answer": answer}, 200
         except Exception as e:
             logger.exception(f"Ошибка {e} при запросе {file_content}")
-            return {"message": "Evraz Chat API error"}, 500
+            return {"message": "EVRAZ_API_ERROR"}, 500
