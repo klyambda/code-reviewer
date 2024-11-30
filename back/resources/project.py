@@ -39,11 +39,11 @@ class Project(Resource):
             return {"message": "Invalid archive file format, only .zip"}, 400
 
         project_manager = ProjectManager()
-        project_id = project_manager.insert_project(file.filename.rstrip(".zip"))
+        project_manager.insert_project(file.filename.rstrip(".zip"))
         try:
-            project_manager.extract_archive_and_save(file, project_id)
+            project_manager.extract_archive_and_save(file)
         except Exception as e:
             logger.exception(e)
             return {"message": "Error with archive"}, 400
 
-        return {"project_id": project_id}, 200
+        return {"project_id": project_manager.project_id}, 200
