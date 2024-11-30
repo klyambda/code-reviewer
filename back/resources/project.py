@@ -1,6 +1,7 @@
-from bson import ObjectId
 from loguru import logger
 from flask import request
+from bson import ObjectId
+from bson.errors import InvalidId
 from flask_restful import Resource
 
 import config
@@ -11,7 +12,11 @@ from src.mongo import col_projects, col_files
 class Project(Resource):
     def get(self, project_id=None):
         if project_id:
-            project_id = ObjectId(project_id)
+            try:
+                project_id = ObjectId(project_id)
+            except InvalidId:
+                return {"message": f"No project with id {project_id}"}, 400
+
             project = col_projects.find_one({"_id": project_id})
             if project is None:
                 return {"message": f"No project with id {project_id}"}, 400
@@ -36,7 +41,7 @@ class Project(Resource):
         project_manager = ProjectManager()
         project_id = project_manager.insert_project(file.filename.rstrip(".zip"))
         try:
-            project_manager.extract_archive_and_return_result(file, project_id)
+            project_manager.extract_archive_and_save(file, project_id)
         except Exception as e:
             logger.exception(e)
             return {"message": "Error with archive"}, 400
