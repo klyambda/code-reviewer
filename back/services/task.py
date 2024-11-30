@@ -33,7 +33,11 @@ class TaskManager:
         logger.debug(f"Task {answer_id} finished")
         col_answers.update_one(
             {"_id": answer_id},
-            {"$set": {"answer": result, "status": "COMPLETED"}}
+            {"$set": {
+                "answer": result,
+                "status": "COMPLETED"},
+                "finished_at": datetime.now(),
+            }
         )
 
 
