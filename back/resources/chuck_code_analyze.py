@@ -26,6 +26,8 @@ class ProjectChuckCodeAnalyze(Resource):
         data = parser.parse_args()
         data_file = col_files.find_one({"_id": file_id})
         if data_file:
+            evraz_manager = EvrazManager()
+            
             project = col_projects.find_one({"_id": data_file["project_id"]})
             task_manager.create_task(
                 "files",
