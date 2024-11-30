@@ -25,7 +25,7 @@ class ProjectManager:
         ).inserted_id
         return project_id
 
-    def extract_archive_and_return_result(self, archive_file, project_id):
+    def extract_archive_and_save(self, archive_file, project_id):
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
                 structure, files = self._get_tree_and_files(archive_file, temp_dir, project_id)
