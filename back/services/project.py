@@ -8,7 +8,7 @@ from services.code import CodeManager
 from src.mongo import col_projects, col_files
 
 
-class ProjectManager(CodeManager):
+class ProjectManager:
     def __init__(self):
         self.IGNORED_SYSTEM_DIRECTORIES = {
             ".git",
@@ -19,6 +19,7 @@ class ProjectManager(CodeManager):
             "venv",
             ".pytest_cache",
         }
+        self.code_manager = CodeManager()
         self.project_id = ""
         self.structure = []
         self.files = []
@@ -81,7 +82,7 @@ class ProjectManager(CodeManager):
                         "created_at": datetime.now(),
                     }
                     col_files.insert_one(file_data)
-                    file_data["definition"] = self.extract_functions_definitions(content)
+                    file_data["definition"] = self.code_manager.extract_functions_definitions(content)
                     self.files.append(file_data)
 
         return structure
