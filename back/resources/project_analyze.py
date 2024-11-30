@@ -28,10 +28,10 @@ class ProjectAnalyze(Resource):
         logger.debug(structure_tree)
 
         evraz_manager = EvrazManager()
-        answer_id = task_manager.create_task_and_return_answer_id(
-            evraz_manager.generate_structure_answer,
+        task_manager.create_task(
             "project",
             project_id,
+            evraz_manager.generate_structure_answer,
             structure_tree,
         )
-        return {"answer_id": answer_id}, 200
+        return {"message": "ok"}, 200
