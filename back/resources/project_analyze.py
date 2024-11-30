@@ -4,6 +4,7 @@ from bson.errors import InvalidId
 from flask_restful import Resource
 
 from src.mongo import col_projects
+from services.task import task_manager
 from services.evraz import EvrazManager
 from services.project import ProjectManager
 
@@ -27,6 +28,10 @@ class ProjectAnalyze(Resource):
         logger.debug(structure_tree)
 
         evraz_manager = EvrazManager()
-        structure_answer = evraz_manager.generate_structure_answer(structure_tree)
-
-        return {"answer": structure_answer}, 200
+        answer_id = task_manager.create_task_and_return_answer_id(
+            evraz_manager.generate_structure_answer,
+            "project",
+            project_id,
+            structure_tree,
+        )
+        return {"answer_id": answer_id}, 200
