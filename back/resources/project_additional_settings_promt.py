@@ -13,7 +13,7 @@ class ProjectAdditionalSettingsPromt(Resource):
     def get(self, project_id):
         project = col_projects.find_one({"_id": ObjectId(project_id)})
         if project:
-            return project.get("additional_settings_promt", "")
+            return {"additional_settings_promt": project.get("additional_settings_promt", "")}
         else:
             return {"message": "project not found"}, 404
 
@@ -27,7 +27,7 @@ class ProjectAdditionalSettingsPromt(Resource):
                 {"_id": ObjectId(project_id)}, 
                 {"$set": {"additional_settings_promt" : data["additional_settings_promt"]}}
             )
-            return data["additional_settings_promt"]
+            return {"additional_settings_promt": data["additional_settings_promt"]}
         else:
             return {"message": "project not found"}, 404
         return {"message": "project is sent to Analyzer"}, 200
