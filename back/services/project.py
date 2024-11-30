@@ -22,7 +22,7 @@ class ProjectManager:
         self.code_manager = CodeManager()
         self.project_id = ""
         self.structure = []
-        self.files = []
+        self.files_by_folders = {}
 
     def insert_project(self, archive_filename):
         self.project_id = col_projects.insert_one(
@@ -87,8 +87,10 @@ class ProjectManager:
                     col_files.insert_one(file_data)
 
                     if item.endswith(".py"):
-                        file_data["definition"] = self.code_manager.extract_functions_and_classes(content)
-                    self.files.append(file_data)
+                        definition = self.code_manager.extract_functions_and_classes(content)
+                        if item_path not in self.files_by_folders:
+                            self.files_by_folders[item_path] = []
+                        self.files_by_folders[item_path].append(f"#{item}\n{definition}")
 
         return structure
 
