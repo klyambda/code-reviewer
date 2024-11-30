@@ -106,6 +106,9 @@ class CodeManager:
 
         # Рекурсивно обрабатываем дерево
         for node in tree.body:
-            extract(node)
+            try:
+                extract(node)
+            except Exception:
+                pass
 
         return "\n".join(functions_and_methods)

@@ -85,7 +85,9 @@ class ProjectManager:
                         "created_at": datetime.now(),
                     }
                     col_files.insert_one(file_data)
-                    file_data["definition"] = self.code_manager.extract_functions_and_classes(content)
+
+                    if item.endswith(".py"):
+                        file_data["definition"] = self.code_manager.extract_functions_and_classes(content)
                     self.files.append(file_data)
 
         return structure
