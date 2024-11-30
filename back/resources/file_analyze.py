@@ -31,10 +31,6 @@ class FileAnalyze(Resource):
 
         elif file_id:
             # TODO ДОБАВИТЬ ПОНИМАНИЕ КОНТЕКСТА (СТРУКТУРА)
-            try:
-                file_id = ObjectId(file_id)
-            except InvalidId:
-                return {"message": f"No file with id {file_id}"}, 400
             file = col_files.find_one({"_id": file_id})
             if file is None:
                 return {"message": f"No file with id {file_id}"}, 400
