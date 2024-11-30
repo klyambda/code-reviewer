@@ -23,11 +23,6 @@ class ProjectAnswer(Resource):
 
 class FileAnswer(Resource):
     def get(self, file_id):
-        try:
-            file_id = ObjectId(file_id)
-        except InvalidId:
-            return {"message": f"No file with id {file_id}"}, 400
-
         file = col_files.find_one({"_id": file_id}, {"answer": 1})
         if file is None:
             return {"message": f"No file with id {file_id}"}, 400
