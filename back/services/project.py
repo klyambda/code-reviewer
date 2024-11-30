@@ -66,17 +66,19 @@ class ProjectManager:
                         "type": "file",
                     }
                 )
-                with open(item_path, "r", encoding="utf-8", errors="ignore") as file:
-                    content = file.read()
-                col_files.insert_one(
-                    {
-                        "_id": file_id,
-                        "name": item,
-                        "content": content,
-                        "project_id": project_id,
-                        "created_at": datetime.now(),
-                    }
-                )
+                # сохраняем содержимое python файлов
+                if item.endswith(".py"):
+                    with open(item_path, "r", encoding="utf-8", errors="ignore") as file:
+                        content = file.read()
+                    col_files.insert_one(
+                        {
+                            "_id": file_id,
+                            "name": item,
+                            "content": content,
+                            "project_id": project_id,
+                            "created_at": datetime.now(),
+                        }
+                    )
         return structure
 
     def format_tree(self, tree, indent=""):
