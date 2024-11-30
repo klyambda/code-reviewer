@@ -19,9 +19,9 @@ class ProjectChuckCodeAnalyze(Resource):
             from random import randint
             if randint(1, 10) == 2:
                 # готово, вернуть результат (ключ не меняй)
-                return {"result": "тут результ"}
+                return {"answer": "тут результ"}
             else:
-                return {"result": "Ваш код анализируется, ожидайте"}, 200
+                return {"answer": "Ваш код анализируется, ожидайте"}, 200
         else:
             return {"message": "project not found"}, 404
 
@@ -39,4 +39,4 @@ class ProjectChuckCodeAnalyze(Resource):
             # ВАЖНО используя project.get("additional_settings_promt", "") (это доп промт от юзаре)
             return {"message": "ok"}, 200
         else:
-            return {"message": "project not found"}, 404
+            return {"message": "file not found"}, 404
