@@ -30,7 +30,13 @@ class CodeManager:
 
             # наследуеммые классы
             if node.bases:
-                result += f"({', '.join([base.id for base in node.bases])}):"
+                bases = []
+                for base in node.bases:
+                    if isinstance(base, ast.Attribute):
+                        bases.append(base.value)
+                    elif isinstance(base, ast.Name):
+                        bases.append(base.id)
+                result += f"({', '.join(bases)}):"
             else:
                 result += ":"
 
