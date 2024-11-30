@@ -23,7 +23,7 @@ class TaskManager:
         self.scheduler.add_job(
             self.execute_task,
             DateTrigger(datetime.now() + timedelta(seconds=1)),
-            args=[answer_id, func, *args]
+            args=[answer_id, func, *args],
         )
         return answer_id
 
@@ -33,11 +33,13 @@ class TaskManager:
         logger.debug(f"Task {answer_id} finished")
         col_answers.update_one(
             {"_id": answer_id},
-            {"$set": {
-                "answer": result,
-                "status": "COMPLETED"},
-                "finished_at": datetime.now(),
-            }
+            {
+                "$set": {
+                    "answer": result,
+                    "status": "COMPLETED",
+                    "finished_at": datetime.now(),
+                }
+            },
         )
 
 
