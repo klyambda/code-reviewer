@@ -13,6 +13,7 @@ class FileAnalyze(Resource):
         """
         Анализ загруженного файла в формате .py или текста
         """
+        evraz_manager = EvrazManager()
         file_content = None
 
         if "file" in request.files:
@@ -21,6 +22,8 @@ class FileAnalyze(Resource):
                 return {"message": "Only .py files are allowed"}, 400
             try:
                 file_content = file.read().decode("utf-8")
+                answer = evraz_manager.generate_file_answer(file_content)
+                return {"answer": answer}, 200
             except Exception as e:
                 return {"message": f"Error reading file: {str(e)}"}, 500
 
@@ -37,7 +40,6 @@ class FileAnalyze(Resource):
         else:
             return {"message": "No file or file_id in the request"}, 400
 
-        evraz_manager = EvrazManager()
         task_manager.create_task(
             "file",
             file_id,
