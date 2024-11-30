@@ -13,7 +13,6 @@ class ProjectAnswer(Resource):
             return {"message": f"No project with id {project_id}"}, 400
 
         project = col_projects.find_one({"_id": project_id}, {"answer": 1})
-        print(project)
         if project is None:
             return {"message": f"No project with id {project_id}"}, 400
         if "answer" not in project:
@@ -29,8 +28,10 @@ class FileAnswer(Resource):
         except InvalidId:
             return {"message": f"No file with id {file_id}"}, 400
 
-        file = col_files.find_one({"_id": file_id}, {"answer": 1})
-        if file is None or "answer" not in file:
-            return {"message": f"No answer with id {file}"}, 400
+        file = col_projects.find_one({"_id": file_id}, {"answer": 1})
+        if file is None:
+            return {"message": f"No file with id {file_id}"}, 400
+        if "answer" not in file:
+            return {"message": f"No answer yet for file with id {file_id}"}, 400
 
         return file["answer"], 200
