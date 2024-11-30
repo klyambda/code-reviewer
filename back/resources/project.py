@@ -18,7 +18,7 @@ class Project(Resource):
 
             files = col_files.find({"project_id": project_id}, {"project_id": 0, "created_at": 0})
 
-            return {"structure": project.get("structure", {}), "files": files}, 200
+            return {"structure": project.get("structure", {}), "files": list(files)}, 200
 
         return {"projects": list(col_projects.find({}, {"structure": 0}))}, 200
 
