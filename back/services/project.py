@@ -81,7 +81,7 @@ class ProjectManager(CodeManager):
                         "created_at": datetime.now(),
                     }
                     col_files.insert_one(file_data)
-                    file_data["definition"] = self.extract_function_definition(content)
+                    file_data["definition"] = self.extract_functions_definitions(content)
                     self.files.append(file_data)
 
         return structure
