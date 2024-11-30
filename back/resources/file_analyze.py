@@ -40,7 +40,7 @@ class FileAnalyze(Resource):
             return {"message": "No file or file_id in the request"}, 400
 
         task_manager.create_task(
-            "file",
+            "files",
             file_id,
             evraz_manager.generate_file_answer,
             file_content,
