@@ -30,6 +30,7 @@ class Pipeline(Resource):
         except Exception as e:
             logger.exception(e)
             return {"message": "Error with archive"}, 400
-        print(project_manager.files)
+        for file in project_manager.files:
+            print(file["definition"])
 
         return {"project_id": project_manager.project_id}, 200
