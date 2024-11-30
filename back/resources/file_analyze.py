@@ -12,7 +12,7 @@ from services.evraz import EvrazManager
 class FileAnalyze(Resource):
     def post(self, file_id=None):
         """
-        Анализ загруженного файла в формате .py или текста
+        Анализ загруженного файла в формате .py
         """
         evraz_manager = EvrazManager()
         file_content = None
@@ -30,6 +30,7 @@ class FileAnalyze(Resource):
                 return {"message": f"Error reading file: {str(e)}"}, 500
 
         elif file_id:
+            # TODO ДОБАВИТЬ ПОНИМАНИЕ КОНТЕКСТА (СТРУКТУРА)
             try:
                 file_id = ObjectId(file_id)
             except InvalidId:
