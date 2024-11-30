@@ -4,8 +4,6 @@ import tempfile
 from uuid import uuid4
 from datetime import datetime
 
-from loguru import logger
-
 from src.mongo import col_projects, col_files
 
 
@@ -57,7 +55,7 @@ class ProjectManager:
                     "id": uuid4().hex,
                     "name": item,
                     "type": "folder",
-                    "children": self.build_structure(item_path)
+                    "children": self.build_structure(item_path, project_id)
                 })
             else:
                 file_id = uuid4().hex
