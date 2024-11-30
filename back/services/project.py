@@ -70,10 +70,13 @@ class ProjectManager:
                         "type": "file",
                     }
                 )
-                # сохраняем содержимое python файлов
-                if item.endswith(".py"):
+                # сохраняем содержимое файлов
+                try:
                     with open(item_path, "r", encoding="utf-8", errors="ignore") as file:
                         content = file.read()
+                except Exception:
+                    pass
+                else:
                     file_data = {
                         "_id": file_id,
                         "name": item,
