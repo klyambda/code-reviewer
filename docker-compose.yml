@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  app:
+    build: back/
+    container_name: app
+    env_file: 
+      - .env
+    ports:
+      - 5000:5000
+
+  mongo:
+    image: mongo
+    container_name: ${MONGO_HOST}
+    restart: unless-stopped
+    tty: true
+    volumes:
+      - /opt/hack/mongo:/data/db
+    ports:
+      - ${MONGO_PORT}:27017
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - 7886:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: root
+      ME_CONFIG_BASICAUTH_PASSWORD: V63546J56UIKDAS1232
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USERNAME}:${MONGO_PASSWORD}@${MONGO_HOST}:27017/
