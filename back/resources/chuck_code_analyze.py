@@ -22,6 +22,6 @@ class ProjectChuckCodeAnalyze(Resource):
             answer = evraz_manager.generate_file_answer(
                 data["code"] + f'\n\n {project.get("additional_settings_promt", "")}'
             )
-            return {"message": "ok"}, 200
+            return {"answer": answer}, 200
         else:
             return {"message": "file not found"}, 404
