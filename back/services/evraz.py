@@ -50,8 +50,14 @@ class EvrazManager:
         return asyncio.run(self.fetch_all(files_content))
 
     async def fetch_all(self, files_content):
+        semaphore = asyncio.Semaphore(config.max_parallel)
+
+        async def bound_fetch(session, content):
+            async with semaphore:
+                return await self.fetch_one(session, content)
+
         async with aiohttp.ClientSession() as session:
-            tasks = [self.fetch_one(session, content) for content in files_content]
+            tasks = [bound_fetch(session, content) for content in files_content]
             return await asyncio.gather(*tasks)
 
     async def fetch_one(self, session, content):
