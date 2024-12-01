@@ -45,6 +45,7 @@ class Pipeline(Resource):
         if answer == "EVRAZ_API_ERROR":
             return {"message": answer}, 500
 
-        memory_file = StringIO(content)
-        memory_file.seek(0)
-        return send_file(memory_file, as_attachment=True, mimetype='text/plain', download_name='report.md')
+        return answer
+        # memory_file = StringIO(content)
+        # memory_file.seek(0)
+        # return send_file(memory_file, as_attachment=True, mimetype='text/plain', download_name='report.md')
