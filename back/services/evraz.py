@@ -73,8 +73,8 @@ class EvrazManager:
                 return "EVRAZ_API_ERROR"
             return await self.fetch_one(session, content, try_count-1)
 
-    def generate_file_answer_csharp(self, content):
-        return self.generate_answer(content, file_prompt_csharp)
+    def generate_file_answer_csharp(self, contents):
+        return [self.generate_answer(content, file_prompt_csharp) for content in contents]
 
-    def generate_file_answer_ts(self, content):
-        return self.generate_answer(content, file_prompt_ts)
+    def generate_file_answer_ts(self, contents):
+        return [self.generate_answer(content, file_prompt_ts) for content in contents]

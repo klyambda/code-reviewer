@@ -9,6 +9,7 @@ from resources.file_analyze import FileAnalyze
 from resources.project_analyze import ProjectAnalyze
 from resources.project_additional_settings_promt import ProjectAdditionalSettingsPromt
 from resources.chuck_code_analyze import ProjectChuckCodeAnalyze
+from resources.project_ts_csharp  import ProjectTsCshapr
 from src.utils import CustomJSONEncoder
 
 
@@ -26,6 +27,8 @@ api.add_resource(ProjectAnalyze, "/analyze/projects/<project_id>")
 api.add_resource(ProjectAdditionalSettingsPromt, "/additional_settings_promt/projects/<project_id>")
 api.add_resource(ProjectChuckCodeAnalyze, "/analyze/chunk/files/<file_id>")
 api.add_resource(FileAnalyze, "/analyze/files", "/analyze/files/<file_id>")
+# csharp or ts
+api.add_resource(ProjectTsCshapr, "/pdf/<lang>")
 
 
 if __name__ == "__main__":
