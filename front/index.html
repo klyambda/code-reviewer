@@ -538,7 +538,7 @@
                 .then((response) => response.json())
                 .then((result) => {
                     console.log(result);
-                    
+
                     editor_text_info.setValue(result.answer);
                     editor_text_info.selection.clearSelection();
                     hideLoader();
@@ -679,7 +679,7 @@
             };
 
             const project = getFromLocalStorage("project");
-            if (project == null){
+            if (project == null) {
                 return 0;
             }
             showLoader();
@@ -710,13 +710,55 @@
         load_answer_tree(0);
 
 
-        
+
         document.getElementById("pdf-report-min-btn").addEventListener("click", () => {
+
+            const project = getFromLocalStorage("project");
+
+            fetch(`http://147.45.146.196:5000/v1/pipeline/${project.project_id}`, { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const fileName = 'output.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
         });
-        
+
         document.getElementById("pdf-report-max-btn").addEventListener("click", () => {
+
+            const project = getFromLocalStorage("project");
+
+            fetch(`http://147.45.146.196:5000/v2/pipeline/${project.project_id}`, { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const fileName = 'output.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
         });
-        
+
 
         // Функция для показа лоадера
         function showLoader() {
