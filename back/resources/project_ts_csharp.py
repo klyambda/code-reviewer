@@ -53,7 +53,7 @@ class ProjectTsCshapr(Resource):
         files_content = []
         for file in files:
             file_content = file.get("content")
-            if file_content and file["name"].lower().endswith(".py"):
+            if file_content and file["name"].lower().endswith(format_type):
                 files_content.append(
                     f'{highlevel_content}\n{file["name"]}\n{file_content}\n{_project.get("additional_settings_promt", "")}'
                 )
