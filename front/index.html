@@ -504,38 +504,6 @@
         const themes = ["ace/theme/monokai", "ace/theme/github", "ace/theme/solarized_dark", "ace/theme/solarized_light"];
         let currentThemeIndex = 0;
 
-        function startPolling(_id_selected) {
-
-            const requestOptions = {
-                method: "GET",
-                redirect: "follow"
-            };
-
-
-            const intervalId = setInterval(() => {
-                fetch(`http://147.45.146.196:5000/analyze/chunk/files/${_id_selected}`, requestOptions)
-                    .then((response) => response.json())
-                    .then((result) => {
-                        console.log(result);
-
-                        if (Object.hasOwn(obj, "answer")) {
-                            console.log("Завершаем запросы. Результат: ", result);
-
-                            editor_text_info.setValue(result.answer);
-                            editor_text_info.selection.clearSelection();
-                            clearInterval(intervalId);
-                            hideLoader();
-                        }
-                    })
-                    .catch((error) => {
-                        console.error("Ошибка при запросе:", error);
-                        clearInterval(intervalId);
-                        hideLoader();
-                    });
-            }, 3000);
-        }
-
-
         document.getElementById("theme-toggle").addEventListener("click", () => {
             currentThemeIndex = (currentThemeIndex + 1) % themes.length;
             const newTheme = themes[currentThemeIndex];
@@ -561,13 +529,15 @@
                 body: raw,
                 redirect: "follow"
             };
-
+            showLoader();
             fetch(`http://147.45.146.196:5000/analyze/chunk/files/${id_selected}`, requestOptions)
-                .then((response) => response.text())
+                .then((response) => response.json())
                 .then((result) => {
                     console.log(result);
-                    showLoader();
-                    startPolling(id_selected);
+                    
+                    editor_text_info.setValue(result.answer);
+                    editor_text_info.selection.clearSelection();
+                    hideLoader();
                 })
                 .catch((error) => console.error(error));
         });
