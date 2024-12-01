@@ -29,14 +29,13 @@ class ProjectTsCshapr(Resource):
             logger.exception(e)
             return {"message": "Error with archive"}, 400
 
-        structure_tree = project_manager.format_tree(project_manager.get("structure", {}))
-        logger.debug(structure_tree)
 
         _project = col_projects.find({"_id": ObjectId(project_manager.project_id)})
 
         project_manager = ProjectManager()
         highlevel_content = project_manager.format_tree(_project.get("structure", {}))
         files = col_files.find({"project_id": ObjectId(project_id)})
+        logger.debug(highlevel_content)
 
         evraz_manager = EvrazManager()
         files_content = []
