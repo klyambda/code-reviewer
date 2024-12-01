@@ -6,6 +6,7 @@ from flask_restful import Resource
 
 from services.task import task_manager
 from services.evraz import EvrazManager
+from services.project import ProjectManager
 from src.mongo import col_files, col_projects
 
 
@@ -14,6 +15,7 @@ class FileAnalyze(Resource):
         """
         Анализ загруженного файла в формате .py
         """
+        project_manager = ProjectManager()
         evraz_manager = EvrazManager()
         file_content = None
 

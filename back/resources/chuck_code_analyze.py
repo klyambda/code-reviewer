@@ -14,11 +14,12 @@ class ProjectChuckCodeAnalyze(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument("code", type=str)
         data = parser.parse_args()
+        project_manager = ProjectManager()
         data_file = col_files.find_one({"_id": file_id})
         if data_file:
             evraz_manager = EvrazManager()
             project = col_projects.find_one({"_id": data_file["project_id"]})
-
+            tree = project_manager.format_tree(project.get("structure", {}))
             answer = evraz_manager.generate_file_answer(
                 f"{tree}\n{data_file['name']}\n " + data["code"] + f'\n\n {project.get("additional_settings_promt", "")}'
             )
