@@ -47,9 +47,9 @@ class ProjectTsCshapr(Resource):
                 files_content.append(
                     f'{highlevel_content}\n{file["name"]}\n{file_content}\n{project.get("additional_settings_promt", "")}'
                 )
-        if lang = "csharp":
+        if lang == "csharp":
             answers = evraz_manager.generate_file_answer_csharp(files_content)
-        elif lang = "ts":
+        elif lang == "ts":
             answers = evraz_manager.generate_file_answer_ts(files_content)
 
         file_pdf = f"{uuid4().hex[:7]}.pdf"
