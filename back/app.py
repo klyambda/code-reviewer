@@ -2,7 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_restful import Api
 
-from resources.pipeline import Pipeline
+from resources.pipeline import PipelineV1, PipelineV2
 from resources.answer import FileAnswer, ProjectAnswer
 from resources.project import Project
 from resources.file_analyze import FileAnalyze
@@ -17,7 +17,8 @@ app.config["RESTFUL_JSON"] = {"cls": CustomJSONEncoder}
 CORS(app)
 
 api = Api(app)
-api.add_resource(Pipeline, "/pipeline")
+api.add_resource(PipelineV1, "v1/pipeline")
+api.add_resource(PipelineV2, "v2/pipeline")
 api.add_resource(FileAnswer, "/answers/files/<file_id>")
 api.add_resource(ProjectAnswer, "/answers/projects/<project_id>")
 api.add_resource(Project, "/projects", "/projects/<project_id>")
