@@ -1,4 +1,7 @@
 import ast
+import sys
+import importlib.util
+from pathlib import Path
 
 
 class CodeManager:
@@ -7,15 +10,26 @@ class CodeManager:
         functions_and_methods = []
 
         def extract(node):
-            if isinstance(node, ast.FunctionDef):
-                functions_and_methods.append(parse_function_node(node))
-            elif isinstance(node, ast.AsyncFunctionDef):
+            if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
+                functions_and_methods.append(parse_import_node(node))
+            elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
                 functions_and_methods.append(parse_function_node(node))
             elif isinstance(node, ast.ClassDef):
                 functions_and_methods.append(parse_class_node(node))
                 for item in node.body:
-                    if isinstance(item, ast.FunctionDef):  # Методы в классах
+                    if isinstance(item, ast.FunctionDef) or isinstance(item, ast.AsyncFunctionDef):
                         functions_and_methods.append(parse_function_node(item))
+
+        def parse_import_node(node):
+            imports = []
+            if isinstance(node, ast.Import):
+                for name in node.names:
+                    if self.is_standard_or_installed(name.name.split(".")[0]):
+                        imports.append(name.name)
+            elif isinstance(node, ast.ImportFrom):
+                for name in node.names:
+                    if self.is_standard_or_installed(node.module):
+                        imports.append(f"{node.module}.{name.name}")
 
         def parse_class_node(node):
             result = ""
@@ -112,3 +126,23 @@ class CodeManager:
                 pass
 
         return "\n".join(functions_and_methods)
+
+    def is_standard_or_installed(self, module_name):
+        """
+        Проверяет, является ли модуль встроенным в Python или установленным через pip.
+        """
+        try:
+            # Попытка найти спецификацию модуля
+            spec = importlib.util.find_spec(module_name)
+            if spec is None or spec.origin is None:
+                return False  # Не удалось найти модуль (пользовательский или отсутствующий)
+
+            # Проверяем, находится ли модуль в стандартной библиотеке или site-packages
+            origin_path = Path(spec.origin)
+            if "site-packages" in origin_path.parts or "dist-packages" in origin_path.parts:
+                return True  # Модуль установлен через pip
+            if sys.base_prefix in spec.origin:  # Модуль из стандартной библиотеки
+                return True
+            return False  # Пользовательский модуль
+        except ModuleNotFoundError:
+            return False  # Если модуль явно отсутствует
