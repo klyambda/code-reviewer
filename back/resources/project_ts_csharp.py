@@ -30,7 +30,7 @@ class ProjectTsCshapr(Resource):
             return {"message": "Error with archive"}, 400
 
 
-        _project = col_projects.find({"_id": ObjectId(project_manager.project_id)})
+        _project = col_projects.find_one({"_id": ObjectId(project_manager.project_id)})
 
         project_manager = ProjectManager()
         highlevel_content = project_manager.format_tree(_project.get("structure", {}))
