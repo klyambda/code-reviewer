@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from loguru import logger
 from flask import request
 from bson import ObjectId
