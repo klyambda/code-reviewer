@@ -34,7 +34,7 @@ class Pipeline(Resource):
 
         content = project_manager.format_tree(project_manager.structure)
         for folder, files in project_manager.files_by_folders.items():
-            content += "{}\n{}".format(folder, '\n'.join(files))
+            content += "{}\n{}\n".format(folder, '\n'.join(files))
 
         print(content)
         evraz_manager = EvrazManager()

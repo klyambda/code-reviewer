@@ -35,7 +35,8 @@ class CodeManager:
 
             res = ""
             for imp in imports:
-                res += f"import {imp}\n"
+                if imp:
+                    res += f"import {imp}\n"
             return res
 
         def parse_class_node(node):
@@ -57,9 +58,7 @@ class CodeManager:
                         bases.append(base.value.id)
                     elif isinstance(base, ast.Name):
                         bases.append(base.id)
-                result += f"({', '.join(bases)}):"
-            else:
-                result += ":"
+                result += f"({', '.join(bases)})"
 
             # докстринг
             docstring = ast.get_docstring(node)
@@ -74,7 +73,8 @@ class CodeManager:
             # декораторы
             for decorator in node.decorator_list:
                 decorator_name = ast.unparse(decorator).strip()
-                result += f"@{decorator_name}\n"
+                if decorator_name:
+                    result += f"@{decorator_name}\n"
 
             # имя
             definition = f"def {node.name}"
@@ -114,9 +114,7 @@ class CodeManager:
 
             # тип возврата
             if node.returns:
-                result += f" -> {ast.unparse(node.returns)}:"
-            else:
-                result += ":"
+                result += f" -> {ast.unparse(node.returns)}"
 
             # докстринг
             docstring = ast.get_docstring(node)
@@ -142,14 +140,14 @@ class CodeManager:
             # Попытка найти спецификацию модуля
             spec = importlib.util.find_spec(module_name)
             if spec is None or spec.origin is None:
-                return False  # Не удалось найти модуль (пользовательский или отсутствующий)
+                return False
 
             # Проверяем, находится ли модуль в стандартной библиотеке или site-packages
             origin_path = Path(spec.origin)
             if "site-packages" in origin_path.parts or "dist-packages" in origin_path.parts:
-                return True  # Модуль установлен через pip
-            if sys.base_prefix in spec.origin:  # Модуль из стандартной библиотеки
                 return True
-            return False  # Пользовательский модуль
+            if sys.base_prefix in spec.origin:
+                return True
+            return False
         except ModuleNotFoundError:
-            return False  # Если модуль явно отсутствует
+            return False
