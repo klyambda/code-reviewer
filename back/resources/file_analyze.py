@@ -35,11 +35,12 @@ class FileAnalyze(Resource):
                 return {"message": f"No file with id {file_id}"}, 400
 
             project = col_projects.find_one({"_id": file["project_id"]})
+            tree = project_manager.format_tree(project.get("structure", {}))
             if file.get("analyze"):
                 # чтобы не делать, такой же анализ опять
                 return {"message": "ok"}, 200
             col_files.update_one({"_id": file_id}, {"$set": {"analyze": True}})
-            file_content = file["content"] + f'\n\n {project.get("additional_settings_promt", "")}'
+            file_content = f"{tree}\n{file['name']}\n " + file["content"] + f'\n\n {project.get("additional_settings_promt", "")}'
 
         else:
             return {"message": "No file or file_id in the request"}, 400
