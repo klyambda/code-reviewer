@@ -811,6 +811,7 @@
                 })
                 .then(blob => {
                     hideLoader();
+                    document.body.removeChild(popup);
                     const fileName = 'output_cs.pdf';
                     const link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
@@ -885,6 +886,7 @@
                 })
                 .then(blob => {
                     hideLoader();
+                    document.body.removeChild(popup);
                     const fileName = 'output_ts.pdf';
                     const link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
