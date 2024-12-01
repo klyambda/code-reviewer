@@ -697,7 +697,6 @@
 
 
         function load_answer_tree(timer) {
-            showLoader();
             const formdata = new FormData();
 
             const requestOptions = {
@@ -709,6 +708,7 @@
             if (project == null){
                 return 0;
             }
+            showLoader();
             fetch(`http://147.45.146.196:5000/answers/projects/${project.project_id}`, requestOptions)
                 .then((response) => response.text())
                 .then((result) => {
