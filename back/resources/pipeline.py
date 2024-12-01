@@ -13,7 +13,6 @@ from services.project import ProjectManager
 
 
 class PipelineV1(Resource):
-    def post(self):
     def post(self, project_id):
         project = col_projects.find_one({"_id": ObjectId(project_id)})
         if project is None:
