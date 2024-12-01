@@ -44,7 +44,7 @@ class ProjectTsCshapr(Resource):
             file_content = file.get("content")
             if file_content and file["name"].lower().endswith(".py"):
                 files_content.append(
-                    f'{highlevel_content}\n{file["name"]}\n{file_content}\n{project.get("additional_settings_promt", "")}'
+                    f'{highlevel_content}\n{file["name"]}\n{file_content}\n{_project.get("additional_settings_promt", "")}'
                 )
         if lang == "csharp":
             answers = evraz_manager.generate_file_answer_csharp(files_content)
