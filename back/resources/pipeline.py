@@ -56,21 +56,17 @@ class PipelineV2(Resource):
 
         project_manager = ProjectManager()
         highlevel_content = project_manager.format_tree(project.get("structure", {}))
-        files = col_files.find({"project_id": project_id},)
+        files = col_files.find({"project_id": project_id})
 
+        evraz_manager = EvrazManager()
         files_content = []
         for file in files:
             file_content = file.get("content")
-            if file_content:
-                files_content.append(file_content)
+            if file_content and file["name"].lower().endswith(".py"):
+                files_content.append(
+                    f'{highlevel_content}\n{file["name"]}\n{file_content}\n{project.get("additional_settings_promt", "")}'
+                )
 
-        evraz_manager = EvrazManager()
-        answers = evraz_manager.generate_files_answers(highlevel_content + file_content)
-
-        if answer == "EVRAZ_API_ERROR":
-            return {"message": answer}, 500
-
-        return answer
-        # memory_file = StringIO(content)
-        # memory_file.seek(0)
-        # return send_file(memory_file, as_attachment=True, mimetype='text/plain', download_name='report.md')
+        answers = evraz_manager.generate_files_answers(files_content)
+        # TODO pdf
+        return {"answer": answers}
