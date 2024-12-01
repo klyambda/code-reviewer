@@ -5,7 +5,7 @@ import requests
 from loguru import logger
 
 import config
-from src.prompts import project_prompt, file_prompt
+from src.prompts import project_prompt, file_prompt, file_prompt_csharp, file_prompt_ts
 
 
 class EvrazManager:
@@ -72,3 +72,9 @@ class EvrazManager:
             if try_count == 0:
                 return "EVRAZ_API_ERROR"
             return await self.fetch_one(session, content, try_count-1)
+
+    def generate_file_answer_csharp(self, content):
+        return self.generate_answer(content, file_prompt_csharp)
+
+    def generate_file_answer_ts(self, content):
+        return self.generate_answer(content, file_prompt_ts)
