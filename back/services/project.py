@@ -1,14 +1,15 @@
+import os
 import zipfile
 import tempfile
+from uuid import uuid4
 from datetime import datetime
 
-from loguru import logger
-
+from services.code import CodeManager
 from src.mongo import col_projects, col_files
 
 
 class ProjectManager:
-    def __init__(self):
+    def __init__(self, project_id="", format_type=".py"):
         self.IGNORED_SYSTEM_DIRECTORIES = {
             ".git",
             "__MACOSX",
@@ -18,110 +19,100 @@ class ProjectManager:
             "venv",
             ".pytest_cache",
         }
+        self.code_manager = CodeManager()
+        self.project_id = project_id
+        self.structure = []
+        self.files_by_folders = {}
+        self.file_content_by_name = {}
+        self.format_type = format_type
 
     def insert_project(self, archive_filename):
-        project_id = col_projects.insert_one(
+        self.project_id = col_projects.insert_one(
             {"name": archive_filename, "created_at": datetime.now()}
         ).inserted_id
-        return str(project_id)
 
-    def extract_archive_and_return_result(self, archive_file, project_id):
-        result = {
-            "structure": {},
-            "files": [],
-        }
+    def extract_archive_and_save(self, archive_file):
         try:
             with tempfile.TemporaryDirectory() as temp_dir:
-                result["structure"], result["files"] = self._get_tree_and_files(archive_file, temp_dir, project_id)
+                with zipfile.ZipFile(archive_file, "r") as zip_ref:
+                    zip_ref.extractall(temp_dir)
+                    self.structure = self.build_structure(temp_dir, root_dir=temp_dir)
         except zipfile.BadZipFile:
             raise ValueError("The provided file is not a valid ZIP archive.")
         except Exception as e:
             raise RuntimeError(f"An error occurred while processing the archive: {e}")
+        else:
+            col_projects.update_one({"_id": self.project_id}, {"$set": {"structure": self.structure}})
 
-        return result
+    def build_structure(self, path, root_dir=""):
+        structure = []
+        for item in sorted(os.listdir(path)):
+            item_path = os.path.join(path, item)
 
-    def _get_tree_and_files(self, archive_file, temp_dir, project_id):
-        tree = {}
-        files = []
+            # Пропускаем системные папки
+            if any(
+                item.startswith(ignored)
+                for ignored in self.IGNORED_SYSTEM_DIRECTORIES
+            ):
+                continue
 
-        with zipfile.ZipFile(archive_file, "r") as zip_ref:
-            zip_ref.extractall(temp_dir)
-            for file in zip_ref.namelist():
-                parts = file.split("/")
-                current_level = tree
+            if os.path.isdir(item_path):
+                structure.append({
+                    "id": uuid4().hex,
+                    "name": item,
+                    "type": "folder",
+                    "children": self.build_structure(item_path, root_dir)
+                })
+            else:
+                file_id = uuid4().hex
+                structure.append(
+                    {
+                        "id": file_id,
+                        "name": item,
+                        "type": "file",
+                    }
+                )
+                # сохраняем содержимое файлов
+                try:
+                    with open(item_path, "r", encoding="utf-8", errors="ignore") as file:
+                        content = file.read()
+                except Exception:
+                    pass
+                else:
+                    col_files.insert_one({
+                        "_id": file_id,
+                        "name": item,
+                        "content": content,
+                        "project_id": self.project_id,
+                        "created_at": datetime.now(),
+                    })
+                    if item.endswith(self.format_type):
+                        if ".py" == self.format_type:
+                            definition = self.code_manager.extract_functions_and_classes(content)
+                        if item_path not in self.files_by_folders:
+                            self.files_by_folders[item_path.lstrip(root_dir)] = []
+                        if ".py" == self.format_type:
+                            self.files_by_folders[item_path.lstrip(root_dir)].append(definition)
+                        self.file_content_by_name[item_path.lstrip(root_dir)] = content
 
-                skip = False
-                for part in parts:
-                    # Проверка на игнорируемую папку
-                    if part in self.IGNORED_SYSTEM_DIRECTORIES:
-                        skip = True
-                        break
+        return structure
 
-                if skip:
-                    continue
-
-                for part in parts:
-                    # Пропустить пустые части (например, из-за `/` в конце)
-                    if part == "":
-                        continue
-                    if part not in current_level:
-                        # Это файл
-                        if part == parts[-1] and not file.endswith("/"):
-                            current_level[part] = None
-
-                            # сохраняем только .py файлы
-                            if not file.endswith(".py"):
-                                continue
-
-                            # проверка, что путь не попадает в игнорируемую папку
-                            if any(
-                                file.startswith(ignored)
-                                for ignored in self.IGNORED_SYSTEM_DIRECTORIES
-                            ):
-                                continue
-
-                            try:
-                                files.append(
-                                    {
-                                        "path": part,
-                                        "filename": file,
-                                        "content": zip_ref.read(file).decode("utf-8"),
-                                        "project_id": project_id,
-                                        "created_at": datetime.now(),
-                                    }
-                                )
-                            except UnicodeDecodeError:
-                                # Пропускаем файлы, которые не удается декодировать как текст
-                                logger.exception(
-                                    f"Не удалось декодировать {file} как текст."
-                                )
-                        else:
-                            # Это директория
-                            current_level[part] = {}
-                    current_level = current_level[part]
-
-        col_files.insert_many(files)
-        col_projects.update_one({"_id": project_id}, {"$set": {"structure": tree}})
-
-        return tree, files
-
-    def format_tree(self, tree, indent=""):
+    def format_tree(self, structure, prefix=""):
         """
-        Форматирует дерево каталогов из словаря в строку.
+        Преобразует JSON-структуру файловой системы в строку в виде дерева.
         """
-        result = []
-        entries = list(tree.keys())
+        tree_str = ""
+        for index, item in enumerate(structure):
+            is_last = index == len(structure) - 1  # Проверяем, последний ли это элемент
+            branch = "└── " if is_last else "├── "
+            next_prefix = "    " if is_last else "│   "
 
-        for i, entry in enumerate(entries):
-            is_last = i == len(entries) - 1
-            connector = "└── " if is_last else "├── "
+            if item["type"] == "file":
+                # Добавляем файл
+                tree_str += f"{prefix}{branch}{item['name']}\n"
+            elif item["type"] == "folder":
+                # Добавляем папку и рекурсивно добавляем ее содержимое
+                tree_str += f"{prefix}{branch}{item['name']}\n"
+                tree_str += self.format_tree(item["children"], prefix + next_prefix)
 
-            # Добавляем текущий элемент
-            result.append(f"{indent}{connector}{entry}")
-
-            # Если это папка с содержимым, рекурсивно добавляем её содержимое
-            if isinstance(tree[entry], dict):
-                deeper_indent = indent + ("    " if is_last else "│   ")
-                result.append(self.format_tree(tree[entry], deeper_indent))
-
-        return "\n".join(result)
+        return tree_str

@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>code review</title>
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #menu {
+            background-color: #333;
+            color: white;
+            padding: 10px;
+            display: flex;
+            /* Используем flexbox для горизонтального расположения */
+            justify-content: flex-start;
+            /* Выравнивание по левому краю */
+        }
+
+        #container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #file-tree {
+            background-color: #1e1e1e;
+            color: #ccc;
+            padding: 10px;
+            overflow-y: auto;
+            width: 250px;
+        }
+
+        #editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        #editor-top {
+            flex: 1;
+            overflow: auto;
+        }
+
+
+        #editor-bottom {
+            border-top: 3px solid #d4a857;
+            padding: 15px;
+            flex: 1;
+            overflow: auto;
+            background-color: #252323;
+            color: #ccc;
+        }
+
+        #footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+
+        .folder,
+        .file {
+            cursor: pointer;
+            padding: 5px;
+            margin: 2px 0;
+        }
+
+        .folder:hover,
+        .file:hover {
+            background-color: #444;
+        }
+
+        .folder {
+            font-weight: bold;
+        }
+
+        .top-btn {
+            background-color: #555;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            margin-left: 10px;
+            border-radius: 4px;
+        }
+
+        .top-btn:hover {
+            background-color: #777;
+        }
+
+        .vertical-divider {
+            width: 1px;
+            height: 30px;
+            /* Можно настроить высоту разделителя */
+            background-color: #777;
+            margin: 0 10px;
+            /* Расстояние вокруг разделителя */
+            margin-left: 20px;
+        }
+
+
+        /* Стили для лоадера */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            /* Размещаем поверх всего контента */
+        }
+
+        .spinner {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!--- КОД ЛУЧШЕ НЕ ЧИТАТЬ -->
+    <div id="menu">
+        <button id="load-solo-btn" class="top-btn">Загрузить данные для ревью (один python файл)</button>
+        <button id="load-btn" class="top-btn">Загрузить данные для ревью (ZIP python)</button>
+        <div class="vertical-divider"></div>
+        <button id="analysis-btn" class="top-btn">Анализ выбранного файла</button>
+        <button id="analysis-select-code-btn" class="top-btn">Анализ выделенного кода</button>
+        <div class="vertical-divider"></div>
+        <button id="lvl-up-analysis-btn" class="top-btn">Расширенные настройки анализа</button>
+        <button id="theme-toggle" class="top-btn">Сменить тему</button>
+        <div class="vertical-divider"></div>
+        <div class="vertical-divider"></div>
+        <button id="pdf-report-min-btn" class="top-btn">PDF отчёт (мини)</button>
+        <button id="pdf-report-max-btn" class="top-btn">PDF отчёт (полный)</button>
+        <div class="vertical-divider"></div>
+        <button id="pdf-report-csharp-btn" class="top-btn">PDF отчёт (zip C#)</button>
+        <button id="pdf-report-ts-btn" class="top-btn">PDF отчёт (zip ts)</button>
+    </div>
+    <div id="container">
+
+        <div id="file-tree"></div>
+        <div id="editor-container">
+            <div id="editor-top"></div>
+            <div id="editor-bottom"></div>
+        </div>
+    </div>
+    <div id="loader" class="loader" style="display: none;">
+        <div class="spinner"></div>
+    </div>
+    <div id="footer">Andrysha & Dimasik (Два Бобра)</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.14/ace.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/split.js/dist/split.min.js"></script>
+    <script>
+        // <!--- КОД ЛУЧШЕ НЕ ЧИТАТЬ -->
+        const container = document.getElementById("container");
+        var id_selected = -1;
+
+        Split(['#file-tree', '#editor-container'], {
+            sizes: [25, 75],
+            minSize: [350, 400],
+            gutterSize: 6,
+
+        });
+
+
+        const editor = ace.edit("editor-top");
+        editor.session.setUseWrapMode(true);
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/python"); editor.setShowPrintMargin(false);
+        editor.renderer.setShowGutter(false);
+        editor.setFontSize(14);
+        editor.renderer.setPadding(20);
+
+
+
+        const editor_text_info = ace.edit("editor-bottom");
+        editor_text_info.setTheme("ace/theme/monokai");
+        editor_text_info.session.setMode("ace/mode/markdown");
+        editor_text_info.setReadOnly(true);
+        editor_text_info.renderer.setShowGutter(false);
+        editor_text_info.setShowPrintMargin(false);
+        editor_text_info.setFontSize(18);
+        editor_text_info.renderer.setPadding(20);
+        editor_text_info.session.setUseWrapMode(true);
+
+        function renderFileTree(jsonData) {
+            const fileTree = document.getElementById("file-tree");
+            fileTree.innerHTML = "";
+
+            function createNode(item, parent) {
+                const element = document.createElement("div");
+                element.className = item.type;
+                element.textContent = item.name;
+                element.id = item.id;
+                element.setAttribute("data-id", item.id);
+
+
+                element.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    onNodeClick(item.id, item.type);
+                });
+
+                parent.appendChild(element);
+
+
+                if (item.type === "folder" && item.children) {
+                    const childContainer = document.createElement("div");
+                    childContainer.style.paddingLeft = "15px";
+                    parent.appendChild(childContainer);
+
+                    item.children.forEach((child) => createNode(child, childContainer));
+                }
+            }
+
+            jsonData.forEach((item) => createNode(item, fileTree));
+        }
+        function removeBordersFromFoldersAndFiles() {
+            const elements = document.querySelectorAll('.folder, .file');
+            elements.forEach((element) => {
+                element.style.border = "none";
+            });
+        }
+
+
+
+        function onNodeClick(id, type) {
+            console.log(`Clicked on ${type} with ID: ${id}`);
+            if (type === "file") {
+                loadFileContent(id);
+                removeBordersFromFoldersAndFiles();
+                document.getElementById(id).style.border = "2px solid red";
+            } else {
+
+            }
+        }
+        var g_files = 1;
+        var additional_settings_promt = "Пусто";
+        function loadFileTree() {
+            const exampleData = [
+                {
+                    id: "1",
+                    name: "worker_telegram",
+                    type: "folder",
+                    children: [
+                        { id: "2", name: "app.py", type: "file" },
+                        { id: "3", name: "config.py", type: "file" },
+                        {
+                            id: "4",
+                            name: "utils",
+                            type: "folder",
+                            children: [
+                                { id: "5", name: "session_utils.py", type: "file" },
+                                { id: "6", name: "log.py", type: "file" },
+                            ],
+                        },
+                    ],
+                },
+                { id: "7", name: "requirements.txt", type: "file" },
+            ];
+
+
+
+            const project = getFromLocalStorage("project");
+
+            if (project === null) {
+                // renderFileTree(exampleData);
+            } else {
+                const formdata = new FormData();
+
+                const requestOptions = {
+                    method: "GET",
+                    redirect: "follow"
+                };
+                console.log(`http://147.45.146.196:5000/projects/${project.project_id}`);
+
+                fetch(`http://147.45.146.196:5000/projects/${project.project_id}`, requestOptions)
+                    .then((response) => response.text())
+                    .then((result) => {
+
+                        let data = JSON.parse(result);
+                        console.log(data);
+                        renderFileTree(data["structure"]);
+                        g_files = data["files"];
+
+                    })
+                    .catch((error) => console.error(error));
+            }
+
+        }
+        function saveToLocalStorage(key, value) {
+
+            localStorage.setItem(key, JSON.stringify(value));
+        }
+
+        function getFromLocalStorage(key) {
+            const value = localStorage.getItem(key);
+            return value ? JSON.parse(value) : null;
+        }
+
+        function loadFileContent(id) {
+            id_selected = id;
+            g_files.forEach(el => {
+                if (el._id == id) {
+                    editor.setValue(el.content);
+                    editor.selection.clearSelection();
+                }
+
+            });
+        }
+        loadFileTree();
+
+
+
+        document.getElementById("load-solo-btn").addEventListener("click", () => {
+
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+
+            popup.innerHTML = `
+                        <div>
+                        <label for="fileInput">Выберите файл (*.py):</label>
+                        <input type="file" id="fileInput" style="margin-bottom: 10px; width: 100%;">
+                        </div>
+                        <button id="uploadButton">Загрузить</button>
+                        <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+            `;
+
+            document.body.appendChild(popup);
+
+
+            document.getElementById('uploadButton').addEventListener('click', () => {
+                showLoader();
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert("Пожалуйста, выберите файл.");
+                    return;
+                }
+
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+
+
+                    editor.setValue(e.target.result);
+                    editor.selection.clearSelection();
+                    console.log("Содержимое файла:", e.target.result);
+                };
+
+                reader.onerror = function (error) {
+                    editor.setValue("Ошибка при чтении файла:", error);
+                };
+
+
+                reader.readAsText(file);
+
+                const formdata = new FormData();
+                formdata.append("file", file);
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("http://147.45.146.196:5000/analyze/files", requestOptions)
+                    .then((response) => response.text())
+                    .then((result) => {
+                        let data = JSON.parse(result);
+                        editor_text_info.setValue(data.answer);
+                        editor_text_info.selection.clearSelection();
+                        editor_text_info.session.setMode("ace/mode/markdown");
+                        document.body.removeChild(popup);
+                        hideLoader();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        alert("Ошибка при загрузке файла.");
+                        hideLoader();
+                    });
+            });
+
+
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+        document.getElementById("load-btn").addEventListener("click", () => {
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+
+            popup.innerHTML = `
+        <div>
+            <label for="fileInput">Выберите файл (ZIP):</label>
+            <input type="file" id="fileInput" style="margin-bottom: 10px; width: 100%;">
+        </div>
+        <button id="uploadButton">Загрузить</button>
+        <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+    `;
+
+            document.body.appendChild(popup);
+
+
+            document.getElementById('uploadButton').addEventListener('click', () => {
+                showLoader();
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert("Пожалуйста, выберите файл.");
+                    return;
+                }
+
+                const formdata = new FormData();
+                formdata.append("file", fileInput.files[0]);
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("http://147.45.146.196:5000/projects", requestOptions)
+                    .then((response) => response.text())
+                    .then((result) => {
+                        let data = JSON.parse(result);
+                        saveToLocalStorage("project", data);
+                        loadFileTree();
+
+                        editor.setValue("");
+                        editor.selection.clearSelection();
+                        editor_text_info.setValue("");
+                        editor_text_info.selection.clearSelection();
+
+                        const requestOptions = {
+                            method: "POST",
+                            redirect: "follow"
+                        };
+                        showLoader;
+                        fetch(`http://147.45.146.196:5000/analyze/projects/${data.project_id}`, requestOptions)
+                            .then((response) => response.json())
+                            .then((result) => {
+                                console.log(result);
+
+
+                                const intervalId = setInterval(() => {
+                                    load_answer_tree(intervalId);
+                                }, 1000);
+                            })
+                            .catch((error) => console.error(error));
+
+                        document.body.removeChild(popup);
+                        hideLoader();
+                    })
+                    .catch((error) => {
+                        console.error(error);
+                        alert("Ошибка при загрузке файла.");
+                        hideLoader();
+                    });
+            });
+
+
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+
+        const themes = ["ace/theme/monokai", "ace/theme/github", "ace/theme/solarized_dark", "ace/theme/solarized_light"];
+        let currentThemeIndex = 0;
+
+        document.getElementById("theme-toggle").addEventListener("click", () => {
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            const newTheme = themes[currentThemeIndex];
+            editor.setTheme(newTheme);
+            console.log(`Theme changed to: ${newTheme}`);
+        });
+
+
+        document.getElementById("analysis-select-code-btn").addEventListener("click", () => {
+            const selectedText = editor.getSelectedText();
+
+            console.log(selectedText);
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+                "code": selectedText
+            });
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "follow"
+            };
+            showLoader();
+            fetch(`http://147.45.146.196:5000/analyze/chunk/files/${id_selected}`, requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    console.log(result);
+
+                    editor_text_info.setValue(result.answer);
+                    editor_text_info.selection.clearSelection();
+                    hideLoader();
+                })
+                .catch((error) => console.error(error));
+        });
+
+
+        document.getElementById("analysis-btn").addEventListener("click", () => {
+            showLoader();
+            editor_text_info.setValue("");
+            editor_text_info.selection.clearSelection();
+            console.log(id_selected);
+            const requestOptions = {
+                method: "POST",
+                redirect: "follow"
+            };
+            fetch(`http://147.45.146.196:5000/analyze/files/${id_selected}`, requestOptions)
+                .then((response) => response.json())
+                .then((result) => {
+                    console.log(result);
+
+                    const intervalId = setInterval(() => {
+                        const requestOptions = {
+                            method: "GET",
+                            redirect: "follow"
+                        };
+
+                        fetch(`http://147.45.146.196:5000/answers/files/${id_selected}`, requestOptions)
+                            .then((response) => response.json())
+                            .then((result) => {
+                                if (Object.hasOwn(result, "answer")) {
+                                    editor_text_info.setValue(result.answer);
+                                    editor_text_info.selection.clearSelection();
+                                    hideLoader();
+                                    clearInterval(intervalId);
+                                } else {
+                                    console.log(result);
+                                }
+                            })
+                            .catch((error) => {
+                                console.error(error);
+                                hideLoader();
+                                clearInterval(intervalId);
+                            });
+
+                    }, 1000);
+
+                });
+        });
+
+        document.getElementById("lvl-up-analysis-btn").addEventListener("click", () => {
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+            popup.innerHTML = `
+                <div>
+                    <label for="textInput1">Дополнительные данные в PROMT(1-2 предложения)</label>
+                    <br>
+                    <textarea  rows="3" id="textInput1" style="margin-bottom: 10px; width: 100%;"></textarea>
+                    <br>
+                </div>
+                <button id="saveButton">Сохранить</button>
+                <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+            `;
+
+            document.body.appendChild(popup);
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            const project = getFromLocalStorage("project");
+
+            fetch(`http://147.45.146.196:5000/additional_settings_promt/projects/${project.project_id}`, requestOptions)
+                .then((response) => response.text())
+                .then((result) => {
+                    console.log(result);
+                    let data = JSON.parse(result);
+                    console.log(data);
+
+                    document.getElementById('textInput1').value = data.additional_settings_promt;
+                })
+                .catch((error) => console.error(error));
+
+            document.getElementById('saveButton').addEventListener('click', () => {
+                const text1 = document.getElementById('textInput1').value;
+
+                console.log(id_selected);
+                console.log(text1);
+
+                const myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+
+                const raw = JSON.stringify({
+                    "additional_settings_promt": text1
+                });
+
+                const requestOptions = {
+                    method: "POST",
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: "follow"
+                };
+
+
+                const project = getFromLocalStorage("project");
+
+                fetch(`http://147.45.146.196:5000/additional_settings_promt/projects/${project.project_id}`, requestOptions)
+                    .then((response) => response.text())
+                    .then((result) => {
+                        console.log(result);
+                        alert("Данные успешно сохранены!");
+                    })
+                    .catch((error) => console.error(error));
+                document.body.removeChild(popup);
+            });
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+
+
+        function load_answer_tree(timer) {
+            const formdata = new FormData();
+
+            const requestOptions = {
+                method: "GET",
+                redirect: "follow"
+            };
+
+            const project = getFromLocalStorage("project");
+            if (project == null) {
+                return 0;
+            }
+            showLoader();
+            fetch(`http://147.45.146.196:5000/answers/projects/${project.project_id}`, requestOptions)
+                .then((response) => response.text())
+                .then((result) => {
+                    let data = JSON.parse(result);
+                    if (Object.hasOwn(data, "answer")) {
+                        editor_text_info.setValue(data.answer);
+                        editor_text_info.selection.clearSelection();
+                        hideLoader();
+                        clearInterval(timer);
+                    } else {
+                        editor_text_info.setValue("Ожидание базого анализа");
+                        editor_text_info.selection.clearSelection();
+                    }
+
+                })
+                .catch((error) => {
+                    console.log(error);
+
+                    editor_text_info.setValue("Ошибка анализа");
+                    editor_text_info.selection.clearSelection();
+
+                    hideLoader();
+                });
+        }
+        load_answer_tree(0);
+
+
+
+        document.getElementById("pdf-report-min-btn").addEventListener("click", () => {
+
+            const project = getFromLocalStorage("project");
+
+            fetch(`http://147.45.146.196:5000/v1/pipeline/${project.project_id}`, { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const fileName = 'output.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
+        });
+
+        document.getElementById("pdf-report-max-btn").addEventListener("click", () => {
+
+            const project = getFromLocalStorage("project");
+
+            fetch(`http://147.45.146.196:5000/v2/pipeline/${project.project_id}`, { method: 'POST' })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    const fileName = 'output.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
+        });
+        document.getElementById("pdf-report-csharp-btn").addEventListener("click", () => {
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+
+            popup.innerHTML = `
+                    <div>
+                        <label for="fileInput">Выберите файл (ZIP C#):</label>
+                        <input type="file" id="fileInput" style="margin-bottom: 10px; width: 100%;">
+                    </div>
+                    <button id="uploadButton">Загрузить</button>
+                    <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+            `;
+
+            document.body.appendChild(popup);
+
+
+            document.getElementById('uploadButton').addEventListener('click', () => {
+                showLoader();
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert("Пожалуйста, выберите файл.");
+                    return;
+                }
+
+                const formdata = new FormData();
+                formdata.append("file", fileInput.files[0]);
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("http://147.45.146.196:5000/pdf/csharp", requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    hideLoader();
+                    document.body.removeChild(popup);
+                    const fileName = 'output_cs.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
+            });
+
+
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+
+
+
+
+
+
+        document.getElementById("pdf-report-ts-btn").addEventListener("click", () => {
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+
+            popup.innerHTML = `
+                    <div>
+                        <label for="fileInput">Выберите файл (ZIP TS):</label>
+                        <input type="file" id="fileInput" style="margin-bottom: 10px; width: 100%;">
+                    </div>
+                    <button id="uploadButton">Загрузить</button>
+                    <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+            `;
+
+            document.body.appendChild(popup);
+
+
+            document.getElementById('uploadButton').addEventListener('click', () => {
+                showLoader();
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert("Пожалуйста, выберите файл.");
+                    return;
+                }
+
+                const formdata = new FormData();
+                formdata.append("file", fileInput.files[0]);
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("http://147.45.146.196:5000/pdf/ts", requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    hideLoader();
+                    document.body.removeChild(popup);
+                    const fileName = 'output_ts.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
+            });
+
+
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+
+
+
+
+
+
+
+
+
+
+
+        // Функция для показа лоадера
+        function showLoader() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'flex';  // Показываем лоадер
+        }
+
+        // Функция для скрытия лоадера
+        function hideLoader() {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'none';  // Прячем лоадер
+        }
+        // <!--- КОД ЛУЧШЕ НЕ ЧИТАТЬ -->
+    </script>
+
+</body>
+
+</html>
