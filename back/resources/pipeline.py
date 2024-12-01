@@ -3,6 +3,7 @@ from flask import request
 from flask_restful import Resource
 
 import config
+from services.evraz import EvrazManager
 from services.project import ProjectManager
 
 
@@ -31,9 +32,12 @@ class Pipeline(Resource):
             logger.exception(e)
             return {"message": "Error with archive"}, 400
 
+        content = project_manager.format_tree(project_manager.structure)
         for folder, files in project_manager.files_by_folders.items():
-            print(folder, "\n".join(files))
+            content += "{}\n{}".format(folder, '\n'.join(files))
 
-        print(project_manager.format_tree(project_manager.structure))
+        print(content)
+        evraz_manager = EvrazManager()
+        answer = evraz_manager.generate_structure_answer(content)
 
-        return {"project_id": project_manager.project_id}, 200
+        return {"answer": answer}, 200

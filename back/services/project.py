@@ -90,7 +90,7 @@ class ProjectManager:
                         definition = self.code_manager.extract_functions_and_classes(content)
                         if item_path not in self.files_by_folders:
                             self.files_by_folders[item_path.lstrip(root_dir)] = []
-                        self.files_by_folders[item_path.lstrip(root_dir)].append(f"#{item}\n{definition}")
+                        self.files_by_folders[item_path.lstrip(root_dir)].append(definition)
 
         return structure
 
