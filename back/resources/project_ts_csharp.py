@@ -34,9 +34,8 @@ class ProjectTsCshapr(Resource):
 
         _project = col_projects.find({"_id": ObjectId(project_manager.project_id)})
 
-
         project_manager = ProjectManager()
-        highlevel_content = project_manager.format_tree(project.get("structure", {}))
+        highlevel_content = project_manager.format_tree(_project.get("structure", {}))
         files = col_files.find({"project_id": ObjectId(project_id)})
 
         evraz_manager = EvrazManager()
