@@ -1,6 +1,8 @@
+from io import StringIO
+
 from loguru import logger
-from flask import request
 from flask_restful import Resource
+from flask import request, send_file
 
 import config
 from services.evraz import EvrazManager
@@ -40,4 +42,9 @@ class Pipeline(Resource):
         evraz_manager = EvrazManager()
         answer = evraz_manager.generate_structure_answer(content)
 
-        return {"answer": answer}, 200
+        if answer == "EVRAZ_API_ERROR":
+            return {"message": answer}, 500
+
+        memory_file = StringIO(content)
+        memory_file.seek(0)
+        return send_file(memory_file, as_attachment=True, mimetype='text/plain', download_name='report.md')
