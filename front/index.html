@@ -716,6 +716,7 @@
 
         document.getElementById("pdf-report-min-btn").addEventListener("click", () => {
 
+            showLoader();
             const project = getFromLocalStorage("project");
 
             fetch(`http://147.45.146.196:5000/v1/pipeline/${project.project_id}`, { method: 'POST' })
@@ -726,6 +727,7 @@
                     return response.blob();
                 })
                 .then(blob => {
+                    hideLoader();
                     const fileName = 'output.pdf';
                     const link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
@@ -740,6 +742,7 @@
 
         document.getElementById("pdf-report-max-btn").addEventListener("click", () => {
 
+            showLoader();
             const project = getFromLocalStorage("project");
 
             fetch(`http://147.45.146.196:5000/v2/pipeline/${project.project_id}`, { method: 'POST' })
@@ -750,6 +753,7 @@
                     return response.blob();
                 })
                 .then(blob => {
+                    hideLoader();
                     const fileName = 'output.pdf';
                     const link = document.createElement('a');
                     link.href = window.URL.createObjectURL(blob);
