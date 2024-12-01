@@ -11,7 +11,9 @@ class CodeManager:
 
         def extract(node):
             if isinstance(node, ast.Import) or isinstance(node, ast.ImportFrom):
-                functions_and_methods.append(parse_import_node(node))
+                res = parse_import_node(node)
+                if res:
+                    functions_and_methods.append(res)
             elif isinstance(node, ast.FunctionDef) or isinstance(node, ast.AsyncFunctionDef):
                 functions_and_methods.append(parse_function_node(node))
             elif isinstance(node, ast.ClassDef):
@@ -30,7 +32,7 @@ class CodeManager:
                 for name in node.names:
                     if self.is_standard_or_installed(node.module):
                         imports.append(f"{node.module}.{name.name}")
-            print(f"{imports = }")
+
             res = ""
             for imp in imports:
                 res += f"import {imp}\n"
