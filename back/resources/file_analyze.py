@@ -30,15 +30,16 @@ class FileAnalyze(Resource):
                 return {"message": f"Error reading file: {str(e)}"}, 500
 
         elif file_id:
-            # TODO ДОБАВИТЬ ПОНИМАНИЕ КОНТЕКСТА (СТРУКТУРА)
             file = col_files.find_one({"_id": file_id})
             if file is None:
                 return {"message": f"No file with id {file_id}"}, 400
+            
+            project = col_projects.find_one({"_id": file["project_id"]})
             if file.get("analyze"):
                 # чтобы не делать, такой же анализ опять
                 return {"message": "ok"}, 200
             col_files.update_one({"_id": file_id}, {"$set": {"analyze": True}})
-            file_content = file["content"]
+            file_content = file["content"] + + f'\n\n {project.get("additional_settings_promt", "")}'
 
         else:
             return {"message": "No file or file_id in the request"}, 400
