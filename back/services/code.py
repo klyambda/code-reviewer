@@ -30,7 +30,7 @@ class CodeManager:
                 for name in node.names:
                     if self.is_standard_or_installed(node.module):
                         imports.append(f"{node.module}.{name.name}")
-
+            print(f"{imports = }")
             res = ""
             for imp in imports:
                 res += f"import {imp}\n"
