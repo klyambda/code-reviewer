@@ -1,3 +1,4 @@
+from uuid import uuid4
 from io import StringIO
 
 from loguru import logger
@@ -7,6 +8,7 @@ from bson import ObjectId
 from bson.errors import InvalidId
 
 import config
+from src.to_pdf import markdown_to_pdf
 from src.mongo import col_projects, col_files
 from services.evraz import EvrazManager
 from services.project import ProjectManager
@@ -27,10 +29,14 @@ class PipelineV1(Resource):
         evraz_manager = EvrazManager()
         answer = evraz_manager.generate_structure_answer(highlevel_content)
 
-        if answer == "EVRAZ_API_ERROR":
-            return {"message": answer}, 500
-
-        return {"answer": answer}, 200
+        file_pdf = f"{uuid4().hex[:7]}.pdf"
+        markdown_to_pdf(answer, file_pdf)
+        return send_file(
+            file_pdf,
+            as_attachment=True,
+            download_name=file_pdf,
+            mimetype="application/pdf"
+        )
 
 
 class PipelineV2(Resource):
@@ -53,5 +59,11 @@ class PipelineV2(Resource):
                 )
 
         answers = evraz_manager.generate_files_answers(files_content)
-        # TODO pdf
-        return {"answer": answers}
+        file_pdf = f"{uuid4().hex[:7]}.pdf"
+        markdown_to_pdf("\n".join(answers), file_pdf)
+        return send_file(
+            file_pdf,
+            as_attachment=True,
+            download_name=file_pdf,
+            mimetype="application/pdf"
+        )
