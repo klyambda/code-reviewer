@@ -63,6 +63,7 @@ class EvrazManager:
     async def fetch_one(self, session, content, try_count=3):
         payload = self.get_payload(content, file_prompt)
         try:
+            print(123)
             async with session.post(self.evraz_url, json=payload, headers=self.headers) as response:
                 response.raise_for_status()
                 data = await response.json()
@@ -71,4 +72,4 @@ class EvrazManager:
             logger.exception(f"Ошибка {e} при запросе {content}")
             if try_count == 0:
                 return "EVRAZ_API_ERROR"
-            return self.fetch_one(session, content, try_count-1)
+            return await self.fetch_one(session, content, try_count-1)
