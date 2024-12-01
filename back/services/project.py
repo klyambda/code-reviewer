@@ -9,7 +9,7 @@ from src.mongo import col_projects, col_files
 
 
 class ProjectManager:
-    def __init__(self):
+    def __init__(self, project_id=""):
         self.IGNORED_SYSTEM_DIRECTORIES = {
             ".git",
             "__MACOSX",
@@ -20,9 +20,10 @@ class ProjectManager:
             ".pytest_cache",
         }
         self.code_manager = CodeManager()
-        self.project_id = ""
+        self.project_id = project_id
         self.structure = []
         self.files_by_folders = {}
+        self.file_content_by_name = {}
 
     def insert_project(self, archive_filename):
         self.project_id = col_projects.insert_one(
@@ -77,20 +78,19 @@ class ProjectManager:
                 except Exception:
                     pass
                 else:
-                    file_data = {
+                    col_files.insert_one({
                         "_id": file_id,
                         "name": item,
                         "content": content,
                         "project_id": self.project_id,
                         "created_at": datetime.now(),
-                    }
-                    col_files.insert_one(file_data)
-
+                    })
                     if item.endswith(".py"):
                         definition = self.code_manager.extract_functions_and_classes(content)
                         if item_path not in self.files_by_folders:
                             self.files_by_folders[item_path.lstrip(root_dir)] = []
-                        self.files_by_folders[item_path.lstrip(root_dir)].append(definition)
+                        self.files_by_folders[item_path.lstrip(root_dir)].append({"definition": definition})
+                        self.file_content_by_name[item_path.lstrip(root_dir)] = content
 
         return structure
 
