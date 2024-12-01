@@ -26,7 +26,14 @@ class ProjectTsCshapr(Resource):
         if not file.filename.lower().endswith(config.ALLOWED_ARCHIVES_EXT):
             return {"message": "Invalid archive file format, only .zip"}, 400
 
-        project_manager = ProjectManager()
+        
+        if lang == "csharp":
+            format_type = ".cs"
+        elif lang == "ts":
+            format_type = ".ts"
+        else:
+            return {"message": "bad lang"}
+        project_manager = ProjectManager(format_type=format_type)
         project_manager.insert_project(file.filename.rstrip(".zip"))
         try:
             project_manager.extract_archive_and_save(file)
@@ -37,7 +44,7 @@ class ProjectTsCshapr(Resource):
 
         _project = col_projects.find_one({"_id": ObjectId(project_manager.project_id)})
 
-        project_manager = ProjectManager()
+        project_manager = ProjectManager(format_type=format_type)
         highlevel_content = project_manager.format_tree(_project.get("structure", {}))
         files = col_files.find({"project_id": _project["_id"]})
         logger.debug(highlevel_content)
