@@ -14,28 +14,19 @@ from services.project import ProjectManager
 
 class PipelineV1(Resource):
     def post(self):
-        if "file" not in request.files:
-            return {"message": "No archive file in the request"}, 400
-
-        file = request.files["file"]
-        if not file.filename.lower().endswith(config.ALLOWED_ARCHIVES_EXT):
-            return {"message": "Invalid archive file format, only .zip"}, 400
+    def post(self, project_id):
+        project = col_projects.find_one({"_id": ObjectId(project_id)})
+        if project is None:
+            return {"message": f"No project with id {project_id}"}, 400
 
         project_manager = ProjectManager()
-        project_manager.insert_project(file.filename.rstrip(".zip"))
-        try:
-            project_manager.extract_archive_and_save(file)
-        except Exception as e:
-            logger.exception(e)
-            return {"message": "Error with archive"}, 400
-
-        content = project_manager.format_tree(project_manager.structure)
+        highlevel_content = project_manager.format_tree(project.get("structure", {}))
         for folder, files in project_manager.files_by_folders.items():
-            content += "{}\n{}\n".format(folder, '\n'.join(files))
+            highlevel_content += "{}\n{}\n".format(folder, '\n'.join(files))
 
-        print(content)
+        print(highlevel_content)
         evraz_manager = EvrazManager()
-        answer = evraz_manager.generate_structure_answer(content)
+        answer = evraz_manager.generate_structure_answer(highlevel_content)
 
         if answer == "EVRAZ_API_ERROR":
             return {"message": answer}, 500
@@ -45,18 +36,13 @@ class PipelineV1(Resource):
 
 class PipelineV2(Resource):
     def post(self, project_id):
-        try:
-            project_id = ObjectId(project_id)
-        except InvalidId:
-            return {"message": f"No project with id {project_id}"}, 400
-
-        project = col_projects.find_one({"_id": project_id})
+        project = col_projects.find_one({"_id": ObjectId(project_id)})
         if project is None:
             return {"message": f"No project with id {project_id}"}, 400
 
         project_manager = ProjectManager()
         highlevel_content = project_manager.format_tree(project.get("structure", {}))
-        files = col_files.find({"project_id": project_id})
+        files = col_files.find({"project_id": ObjectId(project_id)})
 
         evraz_manager = EvrazManager()
         files_content = []
