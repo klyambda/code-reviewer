@@ -34,7 +34,7 @@ class ProjectTsCshapr(Resource):
 
         project_manager = ProjectManager()
         highlevel_content = project_manager.format_tree(_project.get("structure", {}))
-        files = col_files.find({"project_id": ObjectId(project_manager.project_id)})
+        files = col_files.find({"project_id": _project["_id"]})
         logger.debug(highlevel_content)
 
         evraz_manager = EvrazManager()
