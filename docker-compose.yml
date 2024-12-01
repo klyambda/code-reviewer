@@ -9,6 +9,16 @@ services:
     ports:
       - 5000:5000
 
+  front:
+    build: front/
+    container_name: front
+    ports:
+      - 80:80
+    volumes:
+      - ./front:/usr/share/nginx/html
+    depends_on:
+      - app
+
   mongo:
     image: mongo
     container_name: ${MONGO_HOST}
