@@ -147,9 +147,9 @@
     <!--- КОД ЛУЧШЕ НЕ ЧИТАТЬ -->
     <div id="menu">
         <button id="load-solo-btn" class="top-btn">Загрузить данные для ревью (один python файл)</button>
-        <button id="load-btn" class="top-btn">Загрузить данные для ревью (ZIP)</button>
+        <button id="load-btn" class="top-btn">Загрузить данные для ревью (ZIP python)</button>
         <div class="vertical-divider"></div>
-        <button id="analysis-btn" class="top-btn">Анализ выбранного файла файла</button>
+        <button id="analysis-btn" class="top-btn">Анализ выбранного файла</button>
         <button id="analysis-select-code-btn" class="top-btn">Анализ выделенного кода</button>
         <div class="vertical-divider"></div>
         <button id="lvl-up-analysis-btn" class="top-btn">Расширенные настройки анализа</button>
@@ -158,6 +158,9 @@
         <div class="vertical-divider"></div>
         <button id="pdf-report-min-btn" class="top-btn">PDF отчёт (мини)</button>
         <button id="pdf-report-max-btn" class="top-btn">PDF отчёт (полный)</button>
+        <div class="vertical-divider"></div>
+        <button id="pdf-report-csharp-btn" class="top-btn">PDF отчёт (zip C#)</button>
+        <button id="pdf-report-ts-btn" class="top-btn">PDF отчёт (zip ts)</button>
     </div>
     <div id="container">
 
@@ -758,6 +761,157 @@
                     console.error('Ошибка при загрузке файла:', error);
                 });
         });
+        document.getElementById("pdf-report-csharp-btn").addEventListener("click", () => {
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+
+            popup.innerHTML = `
+                    <div>
+                        <label for="fileInput">Выберите файл (ZIP C#):</label>
+                        <input type="file" id="fileInput" style="margin-bottom: 10px; width: 100%;">
+                    </div>
+                    <button id="uploadButton">Загрузить</button>
+                    <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+            `;
+
+            document.body.appendChild(popup);
+
+
+            document.getElementById('uploadButton').addEventListener('click', () => {
+                showLoader();
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert("Пожалуйста, выберите файл.");
+                    return;
+                }
+
+                const formdata = new FormData();
+                formdata.append("file", fileInput.files[0]);
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("http://147.45.146.196:5000/pdf/csharp", requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    hideLoader();
+                    const fileName = 'output_cs.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
+            });
+
+
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+
+
+
+
+
+
+        document.getElementById("pdf-report-ts-btn").addEventListener("click", () => {
+            const popup = document.createElement('div');
+            popup.style.position = 'fixed';
+            popup.style.top = '50%';
+            popup.style.left = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+            popup.style.padding = '20px';
+            popup.style.backgroundColor = 'white';
+            popup.style.boxShadow = '0 4px 8px rgba(0, 0, 0, 0.2)';
+            popup.style.zIndex = '1000';
+
+
+            popup.innerHTML = `
+                    <div>
+                        <label for="fileInput">Выберите файл (ZIP TS):</label>
+                        <input type="file" id="fileInput" style="margin-bottom: 10px; width: 100%;">
+                    </div>
+                    <button id="uploadButton">Загрузить</button>
+                    <button id="closeButton" style="margin-left: 10px;">Закрыть</button>
+            `;
+
+            document.body.appendChild(popup);
+
+
+            document.getElementById('uploadButton').addEventListener('click', () => {
+                showLoader();
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert("Пожалуйста, выберите файл.");
+                    return;
+                }
+
+                const formdata = new FormData();
+                formdata.append("file", fileInput.files[0]);
+
+                const requestOptions = {
+                    method: "POST",
+                    body: formdata,
+                    redirect: "follow"
+                };
+
+                fetch("http://147.45.146.196:5000/pdf/ts", requestOptions)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`Ошибка: ${response.statusText}`);
+                    }
+                    return response.blob();
+                })
+                .then(blob => {
+                    hideLoader();
+                    const fileName = 'output_ts.pdf';
+                    const link = document.createElement('a');
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = fileName;
+                    link.click();
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch(error => {
+                    console.error('Ошибка при загрузке файла:', error);
+                });
+            });
+
+
+            document.getElementById('closeButton').addEventListener('click', () => {
+                document.body.removeChild(popup);
+            });
+        });
+
+
+
+
+
+
+
+
+
+
 
 
         // Функция для показа лоадера
