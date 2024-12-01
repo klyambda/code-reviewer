@@ -20,7 +20,7 @@ class ProjectChuckCodeAnalyze(Resource):
             project = col_projects.find_one({"_id": data_file["project_id"]})
 
             answer = evraz_manager.generate_file_answer(
-                data["code"] + f'\n\n {project.get("additional_settings_promt", "")}'
+                f"{tree}\n{data_file['name']}\n " + data["code"] + f'\n\n {project.get("additional_settings_promt", "")}'
             )
             return {"answer": answer}, 200
         else:
