@@ -35,8 +35,8 @@ class CodeManager:
 
             res = ""
             for imp in imports:
-                if imp:
-                    res += f"import {imp}\n"
+                res += f"import {imp}\n"
+            print(f"{res = }")
             return res
 
         def parse_class_node(node):
