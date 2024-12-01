@@ -31,6 +31,11 @@ class CodeManager:
                     if self.is_standard_or_installed(node.module):
                         imports.append(f"{node.module}.{name.name}")
 
+            res = ""
+            for imp in imports:
+                res += f"import {imp}\n"
+            return res
+
         def parse_class_node(node):
             result = ""
 
