@@ -60,7 +60,7 @@ class EvrazManager:
             tasks = [bound_fetch(session, content) for content in files_content]
             return await asyncio.gather(*tasks)
 
-    async def fetch_one(self, session, content):
+    async def fetch_one(self, session, content, try_count=3):
         payload = self.get_payload(content, file_prompt)
         try:
             async with session.post(self.evraz_url, json=payload, headers=self.headers) as response:
@@ -69,4 +69,6 @@ class EvrazManager:
                 return data["choices"][0]["message"]["content"]
         except Exception as e:
             logger.exception(f"Ошибка {e} при запросе {content}")
-            return "EVRAZ_API_ERROR"
+            if try_count == 0:
+                return "EVRAZ_API_ERROR"
+            return self.fetch_one(session, content, try_count-1)
