@@ -154,6 +154,10 @@
         <div class="vertical-divider"></div>
         <button id="lvl-up-analysis-btn" class="top-btn">Расширенные настройки анализа</button>
         <button id="theme-toggle" class="top-btn">Сменить тему</button>
+        <div class="vertical-divider"></div>
+        <div class="vertical-divider"></div>
+        <button id="pdf-report-min-btn" class="top-btn">PDF отчёт (мини)</button>
+        <button id="pdf-report-max-btn" class="top-btn">PDF отчёт (полный)</button>
     </div>
     <div id="container">
 
@@ -706,6 +710,13 @@
         load_answer_tree(0);
 
 
+        
+        document.getElementById("pdf-report-min-btn").addEventListener("click", () => {
+        });
+        
+        document.getElementById("pdf-report-max-btn").addEventListener("click", () => {
+        });
+        
 
         // Функция для показа лоадера
         function showLoader() {
