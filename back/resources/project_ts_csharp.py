@@ -5,6 +5,7 @@ from bson.errors import InvalidId
 from flask_restful import Resource
 
 import config
+from services.evraz import EvrazManager
 from services.project import ProjectManager
 from src.mongo import col_projects, col_files
 
