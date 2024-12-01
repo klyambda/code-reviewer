@@ -39,7 +39,7 @@ class FileAnalyze(Resource):
                 # чтобы не делать, такой же анализ опять
                 return {"message": "ok"}, 200
             col_files.update_one({"_id": file_id}, {"$set": {"analyze": True}})
-            file_content = file["content"] + + f'\n\n {project.get("additional_settings_promt", "")}'
+            file_content = file["content"] + f'\n\n {project.get("additional_settings_promt", "")}'
 
         else:
             return {"message": "No file or file_id in the request"}, 400
