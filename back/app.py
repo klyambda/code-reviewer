@@ -17,7 +17,7 @@ app.config["RESTFUL_JSON"] = {"cls": CustomJSONEncoder}
 CORS(app)
 
 api = Api(app)
-api.add_resource(PipelineV1, "/v1/pipeline")
+api.add_resource(PipelineV1, "/v1/pipeline/<project_id>")
 api.add_resource(PipelineV2, "/v2/pipeline/<project_id>")
 api.add_resource(FileAnswer, "/answers/files/<file_id>")
 api.add_resource(ProjectAnswer, "/answers/projects/<project_id>")
