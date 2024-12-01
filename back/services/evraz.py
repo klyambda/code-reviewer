@@ -63,7 +63,6 @@ class EvrazManager:
     async def fetch_one(self, session, content, try_count=3):
         payload = self.get_payload(content, file_prompt)
         try:
-            print(123)
             async with session.post(self.evraz_url, json=payload, headers=self.headers) as response:
                 response.raise_for_status()
                 data = await response.json()
