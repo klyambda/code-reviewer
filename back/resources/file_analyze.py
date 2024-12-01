@@ -4,9 +4,9 @@ from bson import ObjectId
 from bson.errors import InvalidId
 from flask_restful import Resource
 
-from src.mongo import col_files
 from services.task import task_manager
 from services.evraz import EvrazManager
+from src.mongo import col_files, col_projects
 
 
 class FileAnalyze(Resource):
@@ -33,7 +33,7 @@ class FileAnalyze(Resource):
             file = col_files.find_one({"_id": file_id})
             if file is None:
                 return {"message": f"No file with id {file_id}"}, 400
-            
+
             project = col_projects.find_one({"_id": file["project_id"]})
             if file.get("analyze"):
                 # чтобы не делать, такой же анализ опять
